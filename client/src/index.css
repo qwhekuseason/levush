@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-ink text-bone font-sans antialiased;
+    font-feature-settings: 'ss01';
+  }
+
+  ::selection {
+    @apply bg-gold/30 text-bone;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-ink;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-ink-600 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gold-deep;
+  }
+}
+
+@layer components {
+  .container-site {
+    @apply mx-auto w-full max-w-site px-5 sm:px-8 lg:px-12;
+  }
+
+  .eyebrow {
+    @apply font-sans text-xs uppercase tracking-widest2 text-gold;
+  }
+
+  .heading-serif {
+    @apply font-serif font-medium leading-[1.05] tracking-tight;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-7 py-3 text-sm font-medium
+      transition-all duration-300 ease-out disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply btn relative overflow-hidden bg-gold text-ink hover:bg-gold-light hover:shadow-[0_0_20px_rgba(184,146,58,0.4)] hover:scale-[1.02];
+  }
+
+  .btn-primary::after {
+    @apply content-[''] absolute top-0 left-[-100%] w-[50%] h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-25deg] transition-all duration-700 ease-in-out;
+  }
+
+  .btn-primary:hover::after {
+    @apply left-[200%];
+  }
+
+  .btn-outline {
+    @apply btn border border-bone/25 text-bone hover:border-gold hover:text-gold hover:bg-gold/5;
+  }
+
+  .btn-royal {
+    @apply btn bg-royal text-bone hover:bg-royal-light;
+  }
+
+  .link-underline {
+    @apply relative inline-block after:absolute after:-bottom-0.5 after:left-0 after:h-px
+      after:w-0 after:bg-gold after:transition-all after:duration-300 hover:after:w-full;
+  }
+
+  .card-surface {
+    @apply rounded-2xl border border-bone/10 bg-ink-800 transition-all duration-500;
+  }
+
+  .glass-panel {
+    @apply bg-ink/70 backdrop-blur-xl border border-bone/10 shadow-2xl;
+  }
+
+  .field {
+    @apply w-full rounded-lg border border-bone/15 bg-ink-700 px-4 py-3 text-sm text-bone
+      placeholder:text-bone/35 outline-none transition focus:border-gold/60 focus:ring-1 focus:ring-gold/30;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .bg-grain {
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      rgba(248, 244, 255, 0.04) 1px,
+      transparent 0
+    );
+    background-size: 28px 28px;
+  }
+}
