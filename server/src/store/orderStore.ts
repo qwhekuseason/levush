@@ -4,8 +4,19 @@ import { db } from '../lib/firebaseAdmin.js';
 export interface OrderItem {
   productId: string;
   name: string;
+  image?: string;
+  color?: string;
+  size?: string;
   quantity: number;
   price: number;
+}
+
+export interface ShippingAddress {
+  firstName: string;
+  lastName: string;
+  address: string;
+  city: string;
+  phone: string;
 }
 
 export type OrderStatus = 'received' | 'paid' | 'shipped' | 'cancelled';
@@ -15,9 +26,12 @@ export interface Order {
   id: string;
   email: string;
   uid: string | null;
+  shippingAddress?: ShippingAddress;
+  paymentMethod?: string;
   items: OrderItem[];
   subtotal: number;
   discount: number;
+  shipping: number;
   couponCode: string | null;
   total: number;
   status: OrderStatus;

@@ -49,8 +49,10 @@ export const api = {
   // Orders
   createOrder: (
     input: {
-      items: { productId: string; name: string; quantity: number; price: number }[];
+      items: { productId: string; name: string; image?: string; color?: string; size?: string; quantity: number; price: number }[];
       email: string;
+      shippingAddress?: { firstName: string; lastName: string; address: string; city: string; phone: string };
+      paymentMethod?: string;
       couponCode?: string | null;
     },
     auth?: string | null

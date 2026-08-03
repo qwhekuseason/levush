@@ -2,7 +2,7 @@ import { useState, type ChangeEvent } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useCatalog } from '@/context/CatalogContext';
 import { api } from '@/lib/api';
-import { classNames, formatPrice, productImage } from '@/lib/format';
+import { classNames, formatPrice, getDiscountInfo, productImage } from '@/lib/format';
 import type { Colorway, Product, ProductTier } from '@/types';
 
 const COLLECTIONS = ['Statement', 'Remix'];
@@ -13,6 +13,7 @@ function emptyDraft(): Partial<Product> {
     name: '',
     tagline: '',
     price: 250,
+    originalPrice: undefined,
     tier: 'core',
     collection: 'Statement',
     verse: { text: '', reference: '' },
@@ -22,12 +23,13 @@ function emptyDraft(): Partial<Product> {
     defaultColor: 'black',
     isNew: false,
     isBestSeller: false,
+    isHidden: false,
   };
 }
 
 export default function AdminProducts() {
   const { authHeader } = useAuth();
-  const { products, refresh } = useCatalog();
+  const { allProducts: products, refresh } = useCatalog();
   const [draft, setDraft] = useState<Partial<Product> | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -71,6 +73,27 @@ export default function AdminProducts() {
     reader.readAsDataURL(file);
   };
 
+  const applyDiscountPercent = (percent: number) => {
+    setDraft((d) => {
+      if (!d) return d;
+      if (percent <= 0) {
+        // Clear discount
+        return {
+          ...d,
+          price: d.originalPrice && d.originalPrice > 0 ? d.originalPrice : d.price,
+          originalPrice: undefined,
+        };
+      }
+      const base = (d.originalPrice && d.originalPrice > 0) ? d.originalPrice : (d.price ?? 250);
+      const discounted = Math.round(base * (1 - percent / 100));
+      return {
+        ...d,
+        originalPrice: base,
+        price: discounted,
+      };
+    });
+  };
+
   const save = async () => {
     if (!draft) return;
     setError(null);
@@ -82,6 +105,7 @@ export default function AdminProducts() {
       const payload: Partial<Product> = {
         ...draft,
         defaultColor: draft.colorways?.[0]?.name ?? 'black',
+        originalPrice: (draft.originalPrice && draft.originalPrice > (draft.price ?? 0)) ? draft.originalPrice : undefined,
       };
       if (editingId) await api.updateProduct(editingId, payload, header);
       else await api.createProduct(payload, header);
@@ -91,6 +115,17 @@ export default function AdminProducts() {
       setError(e instanceof Error ? e.message : 'Could not save.');
     } finally {
       setBusy(false);
+    }
+  };
+
+  const toggleHide = async (p: Product) => {
+    try {
+      const header = await authHeader();
+      if (!header) return;
+      await api.updateProduct(p.id, { isHidden: !p.isHidden }, header);
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not update visibility.');
     }
   };
 
@@ -105,6 +140,8 @@ export default function AdminProducts() {
       setError(e instanceof Error ? e.message : 'Could not delete.');
     }
   };
+
+  const draftDiscount = draft ? getDiscountInfo(draft) : null;
 
   return (
     <div>
@@ -126,14 +163,68 @@ export default function AdminProducts() {
             <Field label="Name">
               <input className="field" value={draft.name ?? ''} onChange={(e) => set('name', e.target.value)} />
             </Field>
-            <Field label="Price (GH₵)">
-              <input type="number" className="field" value={draft.price ?? 0} onChange={(e) => set('price', Number(e.target.value))} />
-            </Field>
+
             <Field label="Collection">
               <select className="field" value={draft.collection} onChange={(e) => set('collection', e.target.value)}>
                 {COLLECTIONS.map((c) => <option key={c}>{c}</option>)}
               </select>
             </Field>
+
+            <Field label="Selling / Discounted Price (GH₵)">
+              <input type="number" className="field" value={draft.price ?? 0} onChange={(e) => set('price', Number(e.target.value))} />
+            </Field>
+
+            <Field label="Original / Regular Price (GH₵) — Optional for discount">
+              <input
+                type="number"
+                className="field"
+                placeholder="Leave blank if no discount"
+                value={draft.originalPrice ?? ''}
+                onChange={(e) => set('originalPrice', e.target.value ? Number(e.target.value) : undefined)}
+              />
+            </Field>
+          </div>
+
+          {/* Discount Presets & Status */}
+          <div className="mt-4 rounded-xl border border-bone/15 bg-ink-700/60 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-bone/60">Discount Calculator</p>
+                {draftDiscount?.hasDiscount ? (
+                  <p className="mt-1 text-sm text-gold">
+                    <span className="font-semibold">-{draftDiscount.percent}% OFF</span> · Buyer pays {formatPrice(draftDiscount.currentPrice)} (Save {formatPrice(draftDiscount.savings)})
+                  </p>
+                ) : (
+                  <p className="mt-1 text-xs text-bone/50">No discount applied. Item sells at full price ({formatPrice(draft.price ?? 0)}).</p>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-xs text-bone/60 mr-1">Quick presets:</span>
+                {[10, 15, 20, 25, 30].map((pct) => (
+                  <button
+                    key={pct}
+                    type="button"
+                    onClick={() => applyDiscountPercent(pct)}
+                    className="rounded-md border border-bone/20 bg-ink-800 px-2.5 py-1 text-xs font-medium text-bone hover:border-gold hover:text-gold"
+                  >
+                    -{pct}%
+                  </button>
+                ))}
+                {draftDiscount?.hasDiscount && (
+                  <button
+                    type="button"
+                    onClick={() => applyDiscountPercent(0)}
+                    className="rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-xs font-medium text-red-400 hover:bg-red-500/20"
+                  >
+                    Clear discount
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <Field label="Tier">
               <select className="field" value={draft.tier} onChange={(e) => set('tier', e.target.value as ProductTier)}>
                 <option value="core">Core</option>
@@ -143,9 +234,37 @@ export default function AdminProducts() {
             <Field label="Tagline">
               <input className="field" value={draft.tagline ?? ''} onChange={(e) => set('tagline', e.target.value)} />
             </Field>
-            <Field label="Sizes (comma-separated)">
+            <Field label="Available Sizes">
+              <div className="flex flex-wrap items-center gap-1.5 mb-2 pt-1">
+                {['S', 'M', 'L', 'XL', '2XL'].map((sz) => {
+                  const activeSizes = draft.sizes ?? [];
+                  const isSelected = activeSizes.includes(sz);
+                  const toggleSize = () => {
+                    const next = isSelected
+                      ? activeSizes.filter((s) => s !== sz)
+                      : [...activeSizes, sz];
+                    set('sizes', next);
+                  };
+                  return (
+                    <button
+                      key={sz}
+                      type="button"
+                      onClick={toggleSize}
+                      className={classNames(
+                        'h-8 min-w-[2.2rem] rounded-lg border text-xs font-semibold transition',
+                        isSelected
+                          ? 'border-gold bg-gold text-ink font-bold'
+                          : 'border-bone/20 bg-ink-800 text-bone/60 hover:border-bone/40 hover:text-bone'
+                      )}
+                    >
+                      {sz}
+                    </button>
+                  );
+                })}
+              </div>
               <input
-                className="field"
+                className="field text-xs"
+                placeholder="Or custom sizes (e.g. S, M, L, XL)"
                 value={(draft.sizes ?? []).join(', ')}
                 onChange={(e) => set('sizes', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
               />
@@ -164,6 +283,10 @@ export default function AdminProducts() {
                 </label>
                 <label className="flex items-center gap-2">
                   <input type="checkbox" checked={!!draft.isBestSeller} onChange={(e) => set('isBestSeller', e.target.checked)} /> Best seller
+                </label>
+                <label className="flex items-center gap-2 text-bone/50">
+                  <input type="checkbox" checked={!!draft.isHidden} onChange={(e) => set('isHidden', e.target.checked)} />
+                  <span className={draft.isHidden ? 'text-red-400 font-semibold' : ''}>Hidden from shop</span>
                 </label>
               </div>
             </Field>
@@ -218,20 +341,52 @@ export default function AdminProducts() {
 
       {/* List */}
       <div className="space-y-3">
-        {products.map((p) => (
-          <div key={p.id} className={classNames('card-surface flex items-center gap-4 p-3', editingId === p.id && 'ring-1 ring-gold')}>
-            <img src={productImage(p, p.defaultColor)} alt={p.name} className="h-16 w-14 rounded object-cover" />
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-medium text-bone">{p.name}</p>
-              <p className="text-xs text-bone/45">{p.collection} · {p.tier} · {p.colorways.length} colour(s)</p>
+        {products.map((p) => {
+          const discount = getDiscountInfo(p);
+          return (
+            <div key={p.id} className={classNames('card-surface flex items-center gap-4 p-3', editingId === p.id && 'ring-1 ring-gold', p.isHidden && 'opacity-50')}>
+              <img src={productImage(p, p.defaultColor)} alt={p.name} className="h-16 w-14 rounded object-cover" />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="truncate font-medium text-bone">{p.name}</p>
+                  {discount.hasDiscount && (
+                    <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[10px] font-bold text-gold border border-gold/30">
+                      -{discount.percent}% SALE
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-bone/45">
+                  {p.collection} · {p.tier} · {p.colorways.length} colour(s)
+                  {p.isHidden && <span className="ml-2 rounded bg-red-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-red-400">HIDDEN</span>}
+                </p>
+              </div>
+
+              <div className="text-right">
+                <p className="font-medium text-gold">{formatPrice(p.price)}</p>
+                {discount.hasDiscount && (
+                  <p className="text-xs text-bone/40 line-through">{formatPrice(discount.originalPrice)}</p>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <button onClick={() => startEdit(p)} className="rounded-lg border border-bone/15 px-3 py-1.5 text-sm text-bone/75 hover:border-gold hover:text-gold">Edit</button>
+                <button
+                  onClick={() => toggleHide(p)}
+                  title={p.isHidden ? 'Show in shop' : 'Hide from shop'}
+                  className={classNames(
+                    'rounded-lg border px-3 py-1.5 text-sm transition',
+                    p.isHidden
+                      ? 'border-green-500/40 text-green-400 hover:bg-green-500/10'
+                      : 'border-bone/15 text-bone/75 hover:border-yellow-400/60 hover:text-yellow-400'
+                  )}
+                >
+                  {p.isHidden ? 'Show' : 'Hide'}
+                </button>
+                <button onClick={() => remove(p)} className="rounded-lg border border-bone/15 px-3 py-1.5 text-sm text-bone/75 hover:border-red-400 hover:text-red-400">Delete</button>
+              </div>
             </div>
-            <p className="font-medium text-gold">{formatPrice(p.price)}</p>
-            <div className="flex gap-2">
-              <button onClick={() => startEdit(p)} className="rounded-lg border border-bone/15 px-3 py-1.5 text-sm text-bone/75 hover:border-gold hover:text-gold">Edit</button>
-              <button onClick={() => remove(p)} className="rounded-lg border border-bone/15 px-3 py-1.5 text-sm text-bone/75 hover:border-red-400 hover:text-red-400">Delete</button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

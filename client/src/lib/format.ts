@@ -20,6 +20,26 @@ export function productImage(product: Product, color?: ColorwayName): string {
   return (match ?? product.colorways[0]).image;
 }
 
+export interface DiscountInfo {
+  hasDiscount: boolean;
+  originalPrice: number;
+  currentPrice: number;
+  savings: number;
+  percent: number;
+}
+
+/** Calculate discount details if product has an originalPrice higher than current price. */
+export function getDiscountInfo(product: Partial<Product>): DiscountInfo {
+  const current = Number(product.price) || 0;
+  const original = Number(product.originalPrice) || 0;
+  if (original > current && current > 0) {
+    const savings = original - current;
+    const percent = Math.round((savings / original) * 100);
+    return { hasDiscount: true, originalPrice: original, currentPrice: current, savings, percent };
+  }
+  return { hasDiscount: false, originalPrice: current, currentPrice: current, savings: 0, percent: 0 };
+}
+
 export function classNames(...parts: Array<string | false | null | undefined>): string {
   return parts.filter(Boolean).join(' ');
 }

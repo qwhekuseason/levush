@@ -61,6 +61,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             name: product.name,
             image: productImage(product, color),
             price: product.price,
+            originalPrice: product.originalPrice,
             color,
             size,
             quantity,

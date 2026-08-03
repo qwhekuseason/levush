@@ -58,7 +58,14 @@ export default function CartDrawer() {
                           {item.color} · {item.size}
                         </p>
                       </div>
-                      <p className="font-medium text-gold">{formatPrice(item.price * item.quantity)}</p>
+                      <div className="text-right">
+                        <p className="font-medium text-gold">{formatPrice(item.price * item.quantity)}</p>
+                        {item.originalPrice && item.originalPrice > item.price && (
+                          <p className="text-xs text-bone/40 line-through">
+                            {formatPrice(item.originalPrice * item.quantity)}
+                          </p>
+                        )}
+                      </div>
                     </div>
                     <div className="mt-auto flex items-center justify-between">
                       <div className="flex items-center gap-3 rounded-full border border-bone/15 px-2 py-1">
@@ -80,10 +87,28 @@ export default function CartDrawer() {
             </ul>
 
             <footer className="border-t border-bone/10 px-6 py-5">
-              <div className="mb-4 flex items-center justify-between text-sm">
-                <span className="text-bone/60">Subtotal</span>
-                <span className="font-serif text-xl text-bone">{formatPrice(subtotal)}</span>
-              </div>
+              {(() => {
+                const totalSavings = items.reduce((sum, i) => {
+                  if (i.originalPrice && i.originalPrice > i.price) {
+                    return sum + (i.originalPrice - i.price) * i.quantity;
+                  }
+                  return sum;
+                }, 0);
+                return (
+                  <>
+                    {totalSavings > 0 && (
+                      <div className="mb-2 flex items-center justify-between text-xs text-red-400 font-medium">
+                        <span>Total Product Savings</span>
+                        <span>-{formatPrice(totalSavings)}</span>
+                      </div>
+                    )}
+                    <div className="mb-4 flex items-center justify-between text-sm">
+                      <span className="text-bone/60">Subtotal</span>
+                      <span className="font-serif text-xl text-bone">{formatPrice(subtotal)}</span>
+                    </div>
+                  </>
+                );
+              })()}
               <Link to="/cart" onClick={closeCart} className="btn-primary w-full">
                 Checkout
               </Link>

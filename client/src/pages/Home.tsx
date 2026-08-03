@@ -12,13 +12,31 @@ export default function Home() {
   const hero = products.find((p) => p.id === 'lion-of-judah') ?? products[0];
   const featured = products.slice(0, 4);
 
-  // Carousel: hero poster + 3 model shots
+  // Carousel: hero poster + new drops & model shots
   const carouselSlides = [
     {
-      image: '/assets/hero-poster.jpg',
-      name: 'The New Collection',
-      tagline: 'Faith, Worn.',
+      image: '/assets/Flyer_1-upd.png',
+      name: 'Special Drop',
+      tagline: 'Kingdom Apparel & Heavyweight Essentials.',
       ref: 'Levush — Ghana',
+    },
+    {
+      image: '/assets/photo_2026-08-03_20-15-53.jpg',
+      name: 'New Statement Piece',
+      tagline: 'Every piece, a word worth wearing.',
+      ref: 'Statement Collection',
+    },
+    {
+      image: '/assets/photo_2026-08-03_20-15-37.jpg',
+      name: 'Scripture Streetwear',
+      tagline: 'Wear what you believe.',
+      ref: 'Remix Drop',
+    },
+    {
+      image: '/assets/hero-poster.jpg',
+      name: 'The Core Collection',
+      tagline: 'Faith, Worn.',
+      ref: 'Levush Edition',
     },
     {
       image: '/assets/model-created-purpose.png',

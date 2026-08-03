@@ -6,7 +6,7 @@ import ProductCard from '@/components/ProductCard';
 import Reveal from '@/components/Reveal';
 import SizeGuideModal from '@/components/SizeGuideModal';
 import { CheckIcon } from '@/components/icons';
-import { classNames, formatPrice, productImage } from '@/lib/format';
+import { classNames, formatPrice, getDiscountInfo, productImage } from '@/lib/format';
 import type { ColorwayName } from '@/types';
 
 export default function ProductDetail() {
@@ -88,7 +88,22 @@ export default function ProductDetail() {
           </div>
           <h1 className="heading-serif mt-3 text-3xl text-bone sm:text-5xl">{product.name}</h1>
           <p className="mt-2 font-serif text-base sm:text-lg italic text-bone/60">{product.tagline}</p>
-          <p className="mt-5 text-2xl font-medium text-gold">{formatPrice(product.price)}</p>
+          {(() => {
+            const discount = getDiscountInfo(product);
+            return (
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                <span className="text-3xl font-medium text-gold">{formatPrice(product.price)}</span>
+                {discount.hasDiscount && (
+                  <>
+                    <span className="text-xl text-bone/45 line-through">{formatPrice(discount.originalPrice)}</span>
+                    <span className="rounded-full bg-red-500/20 px-3 py-1 text-xs font-bold text-red-400 border border-red-500/30">
+                      Save {formatPrice(discount.savings)} ({discount.percent}% OFF)
+                    </span>
+                  </>
+                )}
+              </div>
+            );
+          })()}
 
           <p className="mt-6 leading-relaxed text-bone/65">{product.description}</p>
 

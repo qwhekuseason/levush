@@ -48,9 +48,20 @@ export default function Checkout() {
         {
           email,
           couponCode: null,
+          shippingAddress: {
+            firstName,
+            lastName,
+            address,
+            city,
+            phone,
+          },
+          paymentMethod: paymentMethod === 'paystack' ? 'Mobile Money / Paystack' : paymentMethod === 'card' ? 'Debit/Credit Card' : 'Cash on Delivery',
           items: items.map((i) => ({
             productId: i.productId,
-            name: `${i.name} (${i.color}/${i.size})`,
+            name: i.name,
+            image: i.image,
+            color: i.color,
+            size: i.size,
             quantity: i.quantity,
             price: i.price,
           })),
@@ -130,7 +141,7 @@ export default function Checkout() {
 
           {/* Shipping */}
           <section className="card-surface p-6 sm:p-8">
-            <h2 className="heading-serif text-xl text-bone mb-6">Shipping Address</h2>
+            <h2 className="heading-serif text-xl text-bone mb-6">Delivery Location</h2>
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
                 <label className="mb-2 block text-sm font-medium text-bone/80">First Name *</label>

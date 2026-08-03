@@ -18,7 +18,7 @@ const FREE_SHIPPING_THRESHOLD = 400;
 const SHIPPING_FEE = 30;
 
 router.post('/', async (req, res) => {
-  const { items, email, couponCode } = req.body ?? {};
+  const { items, email, couponCode, shippingAddress, paymentMethod } = req.body ?? {};
 
   if (!Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'Order must contain at least one item.' });
@@ -35,7 +35,15 @@ router.post('/', async (req, res) => {
     const catalogPrice = await priceOf(String(raw.productId));
     const price = catalogPrice ?? (Number(raw.price) || 0);
     subtotal += price * quantity;
-    validItems.push({ productId: String(raw.productId), name: String(raw.name ?? 'Item'), quantity, price });
+    validItems.push({
+      productId: String(raw.productId),
+      name: String(raw.name ?? 'Item'),
+      image: raw.image ? String(raw.image) : undefined,
+      color: raw.color ? String(raw.color) : undefined,
+      size: raw.size ? String(raw.size) : undefined,
+      quantity,
+      price,
+    });
   }
 
   let shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
@@ -58,9 +66,18 @@ router.post('/', async (req, res) => {
   const order = await createOrder({
     email,
     uid: caller?.uid ?? null,
+    shippingAddress: shippingAddress && typeof shippingAddress === 'object' ? {
+      firstName: String(shippingAddress.firstName ?? ''),
+      lastName: String(shippingAddress.lastName ?? ''),
+      address: String(shippingAddress.address ?? ''),
+      city: String(shippingAddress.city ?? ''),
+      phone: String(shippingAddress.phone ?? ''),
+    } : undefined,
+    paymentMethod: paymentMethod ? String(paymentMethod) : undefined,
     items: validItems,
     subtotal,
     discount,
+    shipping,
     couponCode: appliedCode,
     total,
   });

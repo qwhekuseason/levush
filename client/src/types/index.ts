@@ -26,7 +26,8 @@ export interface Product {
   /** the scripture printed on the garment */
   verse: Verse;
   description: string;
-  price: number; // in GHS
+  price: number; // in GHS (current selling price)
+  originalPrice?: number; // in GHS (original list price before discount)
   tier: ProductTier;
   category?: 't-shirt' | 'hoodie' | 'sweatshirt';
   collection: string;
@@ -36,6 +37,8 @@ export interface Product {
   /** marketing flags */
   isNew?: boolean;
   isBestSeller?: boolean;
+  /** admin can hide a product from the buyer-facing shop */
+  isHidden?: boolean;
 }
 
 export interface CartItem {
@@ -44,6 +47,7 @@ export interface CartItem {
   name: string;
   image: string;
   price: number;
+  originalPrice?: number;
   color: ColorwayName;
   size: string;
   quantity: number;
@@ -81,17 +85,31 @@ export type OrderStatus = 'received' | 'paid' | 'shipped' | 'cancelled';
 export interface OrderItem {
   productId: string;
   name: string;
+  image?: string;
+  color?: string;
+  size?: string;
   quantity: number;
   price: number;
+}
+
+export interface ShippingAddress {
+  firstName: string;
+  lastName: string;
+  address: string;
+  city: string;
+  phone: string;
 }
 
 export interface Order {
   id: string;
   email: string;
   uid: string | null;
+  shippingAddress?: ShippingAddress;
+  paymentMethod?: string;
   items: OrderItem[];
   subtotal: number;
   discount: number;
+  shipping: number;
   couponCode: string | null;
   total: number;
   status: OrderStatus;

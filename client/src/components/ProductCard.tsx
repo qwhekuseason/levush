@@ -1,60 +1,139 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Product } from '@/types';
-import { formatPrice, productImage } from '@/lib/format';
+import { formatPrice, getDiscountInfo } from '@/lib/format';
 
-export default function ProductCard({ product }: { product: Product }) {
-  const primary = productImage(product, product.defaultColor);
-  const alt = product.colorways.find((c) => c.name !== product.defaultColor)?.image;
+export default function ProductCard({ product, preferredColor }: { product: Product; preferredColor?: string }) {
+  const matchingColor = preferredColor
+    ? product.colorways.find((c) => c.name.toLowerCase() === preferredColor.toLowerCase() || c.label.toLowerCase().includes(preferredColor.toLowerCase()))?.name
+    : undefined;
+
+  const [selectedColor, setSelectedColor] = useState(matchingColor ?? product.defaultColor);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (matchingColor) {
+      setSelectedColor(matchingColor);
+    }
+  }, [matchingColor]);
+
+  const activeColorway =
+    product.colorways.find((c) => c.name === selectedColor) ?? product.colorways[0];
+  const altColorway = product.colorways.find((c) => c.name !== activeColorway.name);
+  const discount = getDiscountInfo(product);
 
   return (
-    <Link to={`/shop/${product.slug}`} className="group block relative">
-      <div className="absolute -inset-1 rounded-3xl bg-gold/20 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100" aria-hidden="true" />
-      <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-ink-700 border border-bone/5 transition-all duration-500 group-hover:border-gold/30">
-        <img
-          src={primary}
-          alt={product.name}
-          loading="lazy"
-          className="h-full w-full object-cover transition-all duration-700 group-hover:scale-[1.04]"
-        />
-        {alt && (
+    <div className="group relative block">
+      <div
+        className="absolute -inset-1 rounded-3xl bg-gold/20 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100"
+        aria-hidden="true"
+      />
+
+      <Link to={`/shop/${product.slug}`} className="block">
+        <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-bone/5 bg-ink-700 transition-all duration-500 group-hover:border-gold/30">
+          {/* Skeleton Placeholder */}
+          {!loaded && (
+            <div className="absolute inset-0 animate-pulse bg-ink-600/50" />
+          )}
+
           <img
-            src={alt}
-            alt=""
-            aria-hidden
+            src={activeColorway.image}
+            alt={`${product.name} - ${activeColorway.label}`}
             loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+            onLoad={() => setLoaded(true)}
+            className={`h-full w-full object-cover transition-all duration-700 group-hover:scale-[1.04] ${
+              loaded ? 'opacity-100' : 'opacity-0'
+            }`}
           />
-        )}
 
-        <div className="absolute left-3 top-3 flex gap-2">
-          {product.isNew && (
-            <span className="rounded-full bg-gold px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-ink">
-              New
-            </span>
+          {altColorway && (
+            <img
+              src={altColorway.image}
+              alt=""
+              aria-hidden
+              loading="lazy"
+              className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+            />
           )}
-          {product.tier === 'limited' && (
-            <span className="rounded-full border border-bone/30 bg-ink/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-bone backdrop-blur">
-              Limited
-            </span>
+
+          {/* Badges */}
+          <div className="absolute left-3 top-3 flex flex-wrap gap-1.5 z-10">
+            {discount.hasDiscount && (
+              <span className="rounded-full bg-red-500/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-lg backdrop-blur">
+                -{discount.percent}% OFF
+              </span>
+            )}
+            {product.isNew && (
+              <span className="rounded-full bg-gold px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-ink shadow-md">
+                New
+              </span>
+            )}
+            {product.tier === 'limited' && (
+              <span className="rounded-full border border-bone/30 bg-ink/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-bone backdrop-blur">
+                Limited
+              </span>
+            )}
+          </div>
+
+          {/* Colour count badge */}
+          {product.colorways.length > 1 && (
+            <div className="absolute right-3 top-3 z-10">
+              <span className="rounded-full border border-bone/20 bg-ink-900/80 px-2.5 py-1 text-[10px] font-semibold text-bone/80 backdrop-blur-md shadow-md">
+                {product.colorways.length} Colours
+              </span>
+            </div>
           )}
-        </div>
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-4 p-3 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
-          <span className="block rounded-xl bg-ink-800/60 backdrop-blur-md border border-bone/20 py-3 text-center text-sm font-semibold text-bone shadow-xl">
-            View Piece
-          </span>
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-4 p-3 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 z-10">
+            <span className="block rounded-xl border border-bone/20 bg-ink-800/60 py-3 text-center text-sm font-semibold text-bone shadow-xl backdrop-blur-md">
+              View Piece
+            </span>
+          </div>
         </div>
-      </div>
+      </Link>
 
+      {/* Info & Swatches */}
       <div className="mt-4 flex items-start justify-between gap-3">
         <div>
-          <h3 className="font-medium leading-tight text-bone">{product.name}</h3>
+          <Link to={`/shop/${product.slug}`}>
+            <h3 className="font-medium leading-tight text-bone hover:text-gold transition-colors">
+              {product.name}
+            </h3>
+          </Link>
           <p className="mt-0.5 text-xs uppercase tracking-wide text-bone/40">
             {product.verse.reference}
           </p>
+
+          {/* Colorway Swatches */}
+          {product.colorways.length > 1 && (
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+              {product.colorways.map((c) => (
+                <button
+                  key={c.name}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setSelectedColor(c.name);
+                  }}
+                  title={c.label}
+                  className={`h-4 w-4 rounded-full border transition-all ${
+                    selectedColor === c.name
+                      ? 'scale-125 border-gold ring-1 ring-gold/50'
+                      : 'border-bone/20 hover:scale-110 hover:border-bone/50'
+                  }`}
+                  style={{ backgroundColor: c.swatch }}
+                />
+              ))}
+            </div>
+          )}
         </div>
-        <p className="shrink-0 font-medium text-gold">{formatPrice(product.price)}</p>
+
+        <div className="shrink-0 text-right">
+          <p className="font-medium text-gold">{formatPrice(product.price)}</p>
+          {discount.hasDiscount && (
+            <p className="text-xs text-bone/40 line-through">{formatPrice(discount.originalPrice)}</p>
+          )}
+        </div>
       </div>
-    </Link>
+    </div>
   );
 }

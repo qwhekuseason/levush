@@ -22,9 +22,9 @@ export default {
           light: '#1a5c89',
         },
         gold: {
-          DEFAULT: '#b8923a', // muted gold (matches shirt prints)
-          light: '#d6b15c',
-          deep: '#8f6f28',
+          DEFAULT: '#ff402c', // vibrant brand red accent (#ff402c)
+          light: '#ff6352',
+          deep: '#d92b18',
         },
       },
       fontFamily: {

@@ -37,8 +37,12 @@ Thumbs.db
 .turbo/
 .vercel/
 
-# Local agent caches/logs
-.claude/
-.gemini/
-antigravity-ide/
-*.log
+# Secrets & Firebase Service Account Keys
+*.json
+!package.json
+!tsconfig*.json
+!client/package.json
+!client/tsconfig*.json
+!server/package.json
+!server/tsconfig*.json
+

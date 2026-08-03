@@ -54,7 +54,7 @@
   }
 
   .btn-primary {
-    @apply btn relative overflow-hidden bg-gold text-ink hover:bg-gold-light hover:shadow-[0_0_20px_rgba(184,146,58,0.4)] hover:scale-[1.02];
+    @apply btn relative overflow-hidden bg-gold text-white hover:bg-gold-light hover:shadow-[0_0_20px_rgba(255,64,44,0.4)] hover:scale-[1.02];
   }
 
   .btn-primary::after {
