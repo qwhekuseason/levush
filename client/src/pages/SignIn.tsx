@@ -4,19 +4,19 @@ import { useAuth } from '@/context/AuthContext';
 import { motion } from 'framer-motion';
 
 export default function SignIn() {
-  const { user, signIn, signInWithGoogle, enabled, devSignIn } = useAuth();
+  const { user, isAdmin, roleLoading, signIn, signInWithGoogle, enabled, devSignIn } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Redirect if already logged in
+  // Redirect if already logged in — wait until role is resolved
   useEffect(() => {
-    if (user) {
-      navigate('/account', { replace: true });
+    if (user && !roleLoading) {
+      navigate(isAdmin ? '/admin' : '/account', { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, isAdmin, roleLoading, navigate]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -31,7 +31,8 @@ export default function SignIn() {
       } else {
         await signIn(email, password);
       }
-      navigate('/account');
+      // Role will be resolved by AuthContext after sign-in;
+      // the useEffect above will redirect once roleLoading completes.
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Authentication failed.');
     } finally {

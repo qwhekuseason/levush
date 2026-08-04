@@ -21,6 +21,9 @@ import { auth, firebaseEnabled, googleProvider } from '@/lib/firebase';
 import { api } from '@/lib/api';
 import type { Role } from '@/types';
 
+/** Emails that are always treated as admin regardless of backend availability. */
+const ADMIN_EMAILS = ['admin@levush.com'];
+
 export interface AuthUser {
   uid: string;
   email: string | null;
@@ -98,6 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   // Resolve role from the backend whenever the user changes.
+  // Falls back to email-based admin check when the backend is unavailable (e.g. Vercel hosting).
   useEffect(() => {
     let active = true;
     (async () => {
@@ -112,7 +116,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const me = await api.me(header);
         if (active) setRole(me.role);
       } catch {
-        if (active) setRole('customer');
+        // Backend unavailable (e.g. no server deployed on Vercel).
+        // Determine admin status directly from the Firebase-authenticated email.
+        if (active) {
+          const email = user.email?.toLowerCase() ?? '';
+          setRole(ADMIN_EMAILS.includes(email) ? 'admin' : 'customer');
+        }
       } finally {
         if (active) setRoleLoading(false);
       }
