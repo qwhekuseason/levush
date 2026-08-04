@@ -36,14 +36,34 @@ export default function Shop() {
   const [params, setParams] = useSearchParams();
   const active = params.get('collection') ?? 'All';
 
-  // Colour and Size filter states (dropdown selection)
-  const [selectedColor, setSelectedColor] = useState<string>('All');
-  const [selectedSize, setSelectedSize] = useState<string>('All');
+  // Multi-select states
+  const [selectedColors, setSelectedColors] = useState<Set<string>>(new Set());
+  const [selectedSizes, setSelectedSizes] = useState<Set<string>>(new Set());
+
+  const [showColorPanel, setShowColorPanel] = useState(false);
+  const [showSizePanel, setShowSizePanel] = useState(false);
 
   const setCollection = (c: string) => {
     if (c === 'All') params.delete('collection');
     else params.set('collection', c);
     setParams(params, { replace: true });
+  };
+
+  // Toggle helpers
+  const toggleColor = (key: string) => {
+    setSelectedColors((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  };
+
+  const toggleSize = (s: string) => {
+    setSelectedSizes((prev) => {
+      const next = new Set(prev);
+      next.has(s) ? next.delete(s) : next.add(s);
+      return next;
+    });
   };
 
   // Only show colours that actually have products in the catalog
@@ -52,7 +72,7 @@ export default function Shop() {
     [products]
   );
 
-  // Sizes that exist in the catalog (in standard order, extras appended)
+  // Sizes that exist in the catalog
   const availableSizes = useMemo(() => {
     const set = new Set<string>();
     products.forEach((p) => (p.sizes ?? []).forEach((s) => set.add(s.toUpperCase())));
@@ -60,7 +80,7 @@ export default function Shop() {
     return [...ALL_SIZES.filter((s) => set.has(s)), ...custom];
   }, [products]);
 
-  // Filter products by Collection, Colour, and Size
+  // Filter products
   const visible = useMemo(() => {
     let list =
       active === 'All'
@@ -69,32 +89,34 @@ export default function Shop() {
         ? products.filter((p) => getDiscountInfo(p).hasDiscount)
         : products.filter((p) => p.collection === active);
 
-    if (selectedColor !== 'All') {
-      list = list.filter((p) => productMatchesColor(p, selectedColor));
+    if (selectedColors.size > 0) {
+      list = list.filter((p) => [...selectedColors].some((key) => productMatchesColor(p, key)));
     }
 
-    if (selectedSize !== 'All') {
-      const targetSize = selectedSize.toUpperCase();
+    if (selectedSizes.size > 0) {
       list = list.filter((p) =>
-        (p.sizes ?? []).some((s) => s.toUpperCase() === targetSize)
+        (p.sizes ?? []).some((s) => selectedSizes.has(s.toUpperCase()))
       );
     }
 
     return list;
-  }, [active, selectedColor, selectedSize, products]);
+  }, [active, selectedColors, selectedSizes, products]);
 
   const saleCount = useMemo(
     () => products.filter((p) => getDiscountInfo(p).hasDiscount).length,
     [products]
   );
 
-  const isFiltered = selectedColor !== 'All' || selectedSize !== 'All' || active !== 'All';
+  const isFiltered = selectedColors.size > 0 || selectedSizes.size > 0 || active !== 'All';
 
   const resetFilters = () => {
     setCollection('All');
-    setSelectedColor('All');
-    setSelectedSize('All');
+    setSelectedColors(new Set());
+    setSelectedSizes(new Set());
   };
+
+  // Preferred color for ProductCard (first selected, or undefined)
+  const preferredColor = selectedColors.size === 1 ? [...selectedColors][0] : undefined;
 
   return (
     <div className="container-site py-12 md:py-16">
@@ -106,7 +128,7 @@ export default function Shop() {
         </p>
       </header>
 
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-bone/10 pb-5">
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-6 border-b border-bone/10 pb-6">
         {/* Collection Filter Tabs */}
         <div className="flex flex-wrap gap-2">
           {collections.map((c) => (
@@ -138,56 +160,192 @@ export default function Shop() {
           </button>
         </div>
 
-        {/* Colour & Size Dropdowns */}
-        <div className="flex flex-wrap items-center gap-4">
-          {/* Colour Dropdown */}
-          <label className="flex items-center gap-2 text-sm font-medium text-bone/70">
-            Colour
-            <select
-              value={selectedColor}
-              onChange={(e) => setSelectedColor(e.target.value)}
-              className="rounded-lg border border-bone/15 bg-ink-700 px-3 py-2 text-sm text-bone outline-none focus:border-gold/60 cursor-pointer"
-            >
-              <option value="All">All Colours</option>
-              {COLOUR_PALETTE.map((col) => {
-                const available = availableColours.some((a) => a.key === col.key);
-                return (
-                  <option key={col.key} value={col.key} disabled={!available}>
-                    {col.label} {!available ? '(Unavailable)' : ''}
-                  </option>
-                );
-              })}
-            </select>
-          </label>
+        {/* Colour & Size Checkbox Panels */}
+        <div className="flex flex-wrap items-start gap-4">
 
-          {/* Size Dropdown */}
-          <label className="flex items-center gap-2 text-sm font-medium text-bone/70">
-            Size
-            <select
-              value={selectedSize}
-              onChange={(e) => setSelectedSize(e.target.value)}
-              className="rounded-lg border border-bone/15 bg-ink-700 px-3 py-2 text-sm text-bone outline-none focus:border-gold/60 cursor-pointer"
+          {/* ── Colour Checkbox Group ── */}
+          <div className="relative">
+            <button
+              onClick={() => { setShowColorPanel((v) => !v); setShowSizePanel(false); }}
+              className={classNames(
+                'flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition',
+                selectedColors.size > 0
+                  ? 'border-gold/60 bg-gold/10 text-gold'
+                  : 'border-bone/15 text-bone/70 hover:border-bone/35 hover:text-bone'
+              )}
             >
-              <option value="All">All Sizes</option>
-              {availableSizes.map((s) => (
-                <option key={s} value={s}>
-                  Size {s}
-                </option>
-              ))}
-            </select>
-          </label>
+              Colour
+              {selectedColors.size > 0 && (
+                <span className="rounded-full bg-gold text-ink text-xs w-5 h-5 flex items-center justify-center font-bold">
+                  {selectedColors.size}
+                </span>
+              )}
+              <svg className={classNames('w-3 h-3 transition-transform', showColorPanel ? 'rotate-180' : '')} viewBox="0 0 12 8" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M1 1l5 5 5-5"/>
+              </svg>
+            </button>
 
-          {/* Reset Filters */}
+            {showColorPanel && (
+              <div className="absolute left-0 top-full z-30 mt-2 min-w-[200px] rounded-xl border border-bone/15 bg-[#161616] p-4 shadow-2xl">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-bone/40">Colour</p>
+                <div className="flex flex-col gap-2.5">
+                  {COLOUR_PALETTE.map((col) => {
+                    const available = availableColours.some((a) => a.key === col.key);
+                    const checked = selectedColors.has(col.key);
+                    return (
+                      <label
+                        key={col.key}
+                        className={classNames(
+                          'flex items-center gap-3 cursor-pointer select-none',
+                          !available && 'opacity-35 cursor-not-allowed'
+                        )}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          disabled={!available}
+                          onChange={() => available && toggleColor(col.key)}
+                          className="sr-only"
+                        />
+                        {/* Custom checkbox */}
+                        <span
+                          className={classNames(
+                            'flex h-4 w-4 shrink-0 items-center justify-center rounded border transition',
+                            checked
+                              ? 'border-gold bg-gold'
+                              : 'border-bone/25 bg-transparent hover:border-gold/50'
+                          )}
+                        >
+                          {checked && (
+                            <svg className="w-2.5 h-2.5 text-ink" viewBox="0 0 10 8" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M1 4l3 3 5-6"/>
+                            </svg>
+                          )}
+                        </span>
+                        {/* Colour swatch */}
+                        <span
+                          className="h-4 w-4 rounded-full border border-white/10 shrink-0"
+                          style={{ backgroundColor: col.hex }}
+                        />
+                        <span className="text-sm text-bone/80">{col.label}</span>
+                        {!available && <span className="text-xs text-bone/30 ml-auto">–</span>}
+                      </label>
+                    );
+                  })}
+                </div>
+                {selectedColors.size > 0 && (
+                  <button
+                    onClick={() => setSelectedColors(new Set())}
+                    className="mt-4 w-full text-center text-xs text-bone/40 hover:text-gold transition"
+                  >
+                    Clear colours
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* ── Size Checkbox Group ── */}
+          <div className="relative">
+            <button
+              onClick={() => { setShowSizePanel((v) => !v); setShowColorPanel(false); }}
+              className={classNames(
+                'flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition',
+                selectedSizes.size > 0
+                  ? 'border-gold/60 bg-gold/10 text-gold'
+                  : 'border-bone/15 text-bone/70 hover:border-bone/35 hover:text-bone'
+              )}
+            >
+              Size
+              {selectedSizes.size > 0 && (
+                <span className="rounded-full bg-gold text-ink text-xs w-5 h-5 flex items-center justify-center font-bold">
+                  {selectedSizes.size}
+                </span>
+              )}
+              <svg className={classNames('w-3 h-3 transition-transform', showSizePanel ? 'rotate-180' : '')} viewBox="0 0 12 8" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M1 1l5 5 5-5"/>
+              </svg>
+            </button>
+
+            {showSizePanel && (
+              <div className="absolute left-0 top-full z-30 mt-2 min-w-[160px] rounded-xl border border-bone/15 bg-[#161616] p-4 shadow-2xl">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-bone/40">Size</p>
+                <div className="flex flex-col gap-2.5">
+                  {availableSizes.map((s) => {
+                    const checked = selectedSizes.has(s);
+                    return (
+                      <label key={s} className="flex items-center gap-3 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleSize(s)}
+                          className="sr-only"
+                        />
+                        {/* Custom checkbox */}
+                        <span
+                          className={classNames(
+                            'flex h-4 w-4 shrink-0 items-center justify-center rounded border transition',
+                            checked
+                              ? 'border-gold bg-gold'
+                              : 'border-bone/25 bg-transparent hover:border-gold/50'
+                          )}
+                        >
+                          {checked && (
+                            <svg className="w-2.5 h-2.5 text-ink" viewBox="0 0 10 8" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M1 4l3 3 5-6"/>
+                            </svg>
+                          )}
+                        </span>
+                        <span className="text-sm font-medium text-bone/80">{s}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                {selectedSizes.size > 0 && (
+                  <button
+                    onClick={() => setSelectedSizes(new Set())}
+                    className="mt-4 w-full text-center text-xs text-bone/40 hover:text-gold transition"
+                  >
+                    Clear sizes
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Reset all filters */}
           {isFiltered && (
             <button
               onClick={resetFilters}
-              className="text-xs font-semibold text-gold hover:underline underline-offset-4"
+              className="mt-1 text-xs font-semibold text-gold hover:underline underline-offset-4"
             >
-              Reset Filters
+              Reset all
             </button>
           )}
         </div>
       </div>
+
+      {/* Active filter chips */}
+      {(selectedColors.size > 0 || selectedSizes.size > 0) && (
+        <div className="mb-6 flex flex-wrap gap-2">
+          {[...selectedColors].map((key) => {
+            const col = COLOUR_PALETTE.find((c) => c.key === key);
+            return col ? (
+              <span key={key} className="flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-xs text-gold">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: col.hex }} />
+                {col.label}
+                <button onClick={() => toggleColor(key)} className="ml-1 opacity-60 hover:opacity-100">✕</button>
+              </span>
+            ) : null;
+          })}
+          {[...selectedSizes].map((s) => (
+            <span key={s} className="flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-xs text-gold">
+              Size {s}
+              <button onClick={() => toggleSize(s)} className="ml-1 opacity-60 hover:opacity-100">✕</button>
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Product Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-3">
@@ -195,7 +353,7 @@ export default function Shop() {
           <Reveal key={p.id} delay={(i % 3) * 80}>
             <ProductCard
               product={p}
-              preferredColor={selectedColor !== 'All' ? selectedColor : undefined}
+              preferredColor={preferredColor}
             />
           </Reveal>
         ))}
@@ -204,7 +362,7 @@ export default function Shop() {
       {visible.length === 0 && (
         <div className="py-20 text-center">
           <p className="text-lg font-medium text-bone">No shirts match your selected filters.</p>
-          <p className="mt-2 text-sm text-bone/45">Try choosing a different colour or size filter.</p>
+          <p className="mt-2 text-sm text-bone/45">Try choosing a different colour or size.</p>
           <button onClick={resetFilters} className="btn-outline mt-5">
             Reset all filters
           </button>
