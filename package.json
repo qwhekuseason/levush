@@ -1,0 +1,13 @@
+{
+  "name": "levush",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces"
+  }
+}
