@@ -46,3 +46,7 @@ Thumbs.db
 !server/package.json
 !server/tsconfig*.json
 
+# Large binary assets (images served statically — not tracked in git)
+assets/
+client/public/assets/
+
