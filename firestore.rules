@@ -15,11 +15,6 @@ service cloud.firestore {
       allow update, delete: if request.auth != null && request.auth.token.email == 'admin@levush.com';
     }
 
-    // Rewards & Points: Users can read/write their own rewards; Admin can read all
-    match /rewards/{email} {
-      allow read, write: if request.auth != null && (request.auth.token.email == 'admin@levush.com' || request.auth.token.email == email);
-    }
-
     // Coupons: Anyone can read/validate coupons; Admin has full control
     match /coupons/{couponCode} {
       allow read: if true;

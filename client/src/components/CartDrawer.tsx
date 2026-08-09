@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { CloseIcon, MinusIcon, PlusIcon } from '@/components/icons';
-import { formatPrice } from '@/lib/format';
+import { formatPrice, toWebp } from '@/lib/format';
 
 export default function CartDrawer() {
   const { items, isOpen, closeCart, subtotal, setQuantity, removeItem, count } = useCart();
@@ -46,8 +46,10 @@ export default function CartDrawer() {
               {items.map((item) => (
                 <li key={item.id} className="flex gap-4 py-5">
                   <img
-                    src={item.image}
+                    src={toWebp(item.image)}
                     alt={item.name}
+                    loading="lazy"
+                    decoding="async"
                     className="h-24 w-20 rounded-lg object-cover"
                   />
                   <div className="flex flex-1 flex-col">

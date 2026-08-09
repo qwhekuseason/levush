@@ -51,8 +51,8 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'white',
     colorways: [
-      { name: 'white', label: 'Magnolia', swatch: '#f5f5f5', image: '/assets/created-purpose-white.jpg' },
-      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/created-purpose-black.jpg' },
+      { name: 'white', label: 'Magnolia', swatch: '#f5f5f5', image: '/assets/created-purpose-white.webp' },
+      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/created-purpose-black.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isBestSeller: true,
@@ -74,7 +74,7 @@ const seed: Product[] = [
     collection: 'Remix',
     defaultColor: 'black',
     colorways: [
-      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/lion-of-judah-black.jpg' },
+      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/lion-of-judah-black.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -96,8 +96,8 @@ const seed: Product[] = [
     collection: 'Remix',
     defaultColor: 'black',
     colorways: [
-      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/jesus-paid-black.jpg' },
-      { name: 'white', label: 'Magnolia', swatch: '#f5f5f5', image: '/assets/jesus-paid-white.jpg' },
+      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/jesus-paid-black.webp' },
+      { name: 'white', label: 'Magnolia', swatch: '#f5f5f5', image: '/assets/jesus-paid-white.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isBestSeller: true,
@@ -118,8 +118,8 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'white',
     colorways: [
-      { name: 'white', label: 'Magnolia', swatch: '#f5f5f5', image: '/assets/gods-way-white.jpg' },
-      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/gods-way-black.jpg' },
+      { name: 'white', label: 'Magnolia', swatch: '#f5f5f5', image: '/assets/gods-way-white.webp' },
+      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/gods-way-black.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -141,8 +141,8 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'black',
     colorways: [
-      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/armor-hoodie-black.png' },
-      { name: 'white', label: 'Magnolia', swatch: '#f5f5f5', image: '/assets/armor-hoodie-white.png' },
+      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/armor-hoodie-black.webp' },
+      { name: 'white', label: 'Magnolia', swatch: '#f5f5f5', image: '/assets/armor-hoodie-white.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -164,8 +164,8 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'white',
     colorways: [
-      { name: 'white', label: 'Magnolia', swatch: '#f5f5f5', image: '/assets/faith-sweatshirt-white.png' },
-      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/faith-sweatshirt-black.png' },
+      { name: 'white', label: 'Magnolia', swatch: '#f5f5f5', image: '/assets/faith-sweatshirt-white.webp' },
+      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/faith-sweatshirt-black.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
   },
@@ -185,8 +185,8 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'white',
     colorways: [
-      { name: 'white', label: 'Magnolia', swatch: '#f5f5f5', image: '/assets/Anointed.png' },
-      { name: 'brown', label: 'Earth Brown', swatch: '#78350f', image: '/assets/Anointed-brown-shape.png' },
+      { name: 'white', label: 'Magnolia', swatch: '#f5f5f5', image: '/assets/Anointed.webp' },
+      { name: 'brown', label: 'Earth Brown', swatch: '#78350f', image: '/assets/Anointed-brown-shape.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -207,8 +207,8 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'black',
     colorways: [
-      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Believe---Copy.png' },
-      { name: 'black-v2', label: 'Midnight', swatch: '#1a1a2e', image: '/assets/Believe.png' },
+      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Believe---Copy.webp' },
+      { name: 'black-v2', label: 'Midnight', swatch: '#1a1a2e', image: '/assets/Believe.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -229,10 +229,10 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'red',
     colorways: [
-      { name: 'red', label: 'Crimson Red', swatch: '#991b1b', image: '/assets/Blessed-red-1.png' },
-      { name: 'red-v2', label: 'Crimson Red II', swatch: '#7f1d1d', image: '/assets/Blessed-red-2.png' },
-      { name: 'white', label: 'Magnolia White', swatch: '#f5f5f5', image: '/assets/Blessed-white-1.png' },
-      { name: 'white-v2', label: 'Magnolia White II', swatch: '#fffbf0', image: '/assets/Blessed-white-2.png' },
+      { name: 'red', label: 'Crimson Red', swatch: '#991b1b', image: '/assets/Blessed-red-1.webp' },
+      { name: 'red-v2', label: 'Crimson Red II', swatch: '#7f1d1d', image: '/assets/Blessed-red-2.webp' },
+      { name: 'white', label: 'Magnolia White', swatch: '#f5f5f5', image: '/assets/Blessed-white-1.webp' },
+      { name: 'white-v2', label: 'Magnolia White II', swatch: '#fffbf0', image: '/assets/Blessed-white-2.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -252,7 +252,7 @@ const seed: Product[] = [
     collection: 'Remix',
     defaultColor: 'black',
     colorways: [
-      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Baba_why.png' },
+      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Baba_why.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -272,7 +272,7 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'white',
     colorways: [
-      { name: 'white', label: 'Magnolia White', swatch: '#f5f5f5', image: '/assets/D1-Black-on-white.png' },
+      { name: 'white', label: 'Magnolia White', swatch: '#f5f5f5', image: '/assets/D1-Black-on-white.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -293,9 +293,9 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'gold',
     colorways: [
-      { name: 'gold', label: 'Royal Gold', swatch: '#d97706', image: '/assets/D2-Black-and-gold-on-white.png' },
-      { name: 'gold-v2', label: 'Royal Gold II', swatch: '#b45309', image: '/assets/D2-Black-and-gold-on-white-2.png' },
-      { name: 'ash', label: 'Ash Grey', swatch: '#9ca3af', image: '/assets/D2-White-on-ash.png' },
+      { name: 'gold', label: 'Royal Gold', swatch: '#d97706', image: '/assets/D2-Black-and-gold-on-white.webp' },
+      { name: 'gold-v2', label: 'Royal Gold II', swatch: '#b45309', image: '/assets/D2-Black-and-gold-on-white-2.webp' },
+      { name: 'ash', label: 'Ash Grey', swatch: '#9ca3af', image: '/assets/D2-White-on-ash.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -315,7 +315,7 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'red',
     colorways: [
-      { name: 'red', label: 'Crimson Red', swatch: '#991b1b', image: '/assets/D3-Black-and-red-on-white.png' },
+      { name: 'red', label: 'Crimson Red', swatch: '#991b1b', image: '/assets/D3-Black-and-red-on-white.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -336,8 +336,8 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'cream',
     colorways: [
-      { name: 'cream', label: 'Cream White', swatch: '#fef3c7', image: '/assets/WHSIA-Excellent-Cream.png' },
-      { name: 'brown', label: 'Earth Brown', swatch: '#78350f', image: '/assets/Excellent-brown-shape.png' },
+      { name: 'cream', label: 'Cream White', swatch: '#fef3c7', image: '/assets/WHSIA-Excellent-Cream.webp' },
+      { name: 'brown', label: 'Earth Brown', swatch: '#78350f', image: '/assets/Excellent-brown-shape.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -358,8 +358,8 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'black',
     colorways: [
-      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Faith---Copy.png' },
-      { name: 'black-v2', label: 'Deep Black', swatch: '#111111', image: '/assets/Faith.png' },
+      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Faith---Copy.webp' },
+      { name: 'black-v2', label: 'Deep Black', swatch: '#111111', image: '/assets/Faith.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -380,8 +380,8 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'red',
     colorways: [
-      { name: 'red', label: 'Crimson Red', swatch: '#991b1b', image: '/assets/Favoured-brown-shape.png' },
-      { name: 'white', label: 'Magnolia', swatch: '#f5f5f5', image: '/assets/Favoured.png' },
+      { name: 'red', label: 'Crimson Red', swatch: '#991b1b', image: '/assets/Favoured-brown-shape.webp' },
+      { name: 'white', label: 'Magnolia', swatch: '#f5f5f5', image: '/assets/Favoured.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -402,14 +402,14 @@ const seed: Product[] = [
     collection: 'Remix',
     defaultColor: 'black',
     colorways: [
-      { name: 'black', label: 'GGG-1 Black', swatch: '#242124', image: '/assets/GGG-11.png' },
-      { name: 'black-alt', label: 'GGG-1 Alt', swatch: '#1a1a1a', image: '/assets/GGG-1.png' },
-      { name: 'navy', label: 'GGG-2 Navy', swatch: '#1e3a5f', image: '/assets/GGG-2.png' },
-      { name: 'navy-alt', label: 'GGG-2 Alt', swatch: '#152a47', image: '/assets/GGG-21.png' },
-      { name: 'white', label: 'GGG-3 White', swatch: '#f5f5f5', image: '/assets/GGG-3.png' },
-      { name: 'white-alt', label: 'GGG-3 Alt', swatch: '#fafafa', image: '/assets/GGG-31.png' },
-      { name: 'grey', label: 'GGG-4 Grey', swatch: '#9ca3af', image: '/assets/GGG-4.png' },
-      { name: 'grey-alt', label: 'GGG-4 Alt', swatch: '#6b7280', image: '/assets/GGG-41.png' },
+      { name: 'black', label: 'GGG-1 Black', swatch: '#242124', image: '/assets/GGG-11.webp' },
+      { name: 'black-alt', label: 'GGG-1 Alt', swatch: '#1a1a1a', image: '/assets/GGG-1.webp' },
+      { name: 'navy', label: 'GGG-2 Navy', swatch: '#1e3a5f', image: '/assets/GGG-2.webp' },
+      { name: 'navy-alt', label: 'GGG-2 Alt', swatch: '#152a47', image: '/assets/GGG-21.webp' },
+      { name: 'white', label: 'GGG-3 White', swatch: '#f5f5f5', image: '/assets/GGG-3.webp' },
+      { name: 'white-alt', label: 'GGG-3 Alt', swatch: '#fafafa', image: '/assets/GGG-31.webp' },
+      { name: 'grey', label: 'GGG-4 Grey', swatch: '#9ca3af', image: '/assets/GGG-4.webp' },
+      { name: 'grey-alt', label: 'GGG-4 Alt', swatch: '#6b7280', image: '/assets/GGG-41.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -431,8 +431,8 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'red',
     colorways: [
-      { name: 'red', label: 'Crimson Red', swatch: '#991b1b', image: '/assets/God-Bless-Me-red.png' },
-      { name: 'white', label: 'Magnolia White', swatch: '#f5f5f5', image: '/assets/God-Bless-Me-white.png' },
+      { name: 'red', label: 'Crimson Red', swatch: '#991b1b', image: '/assets/God-Bless-Me-red.webp' },
+      { name: 'white', label: 'Magnolia White', swatch: '#f5f5f5', image: '/assets/God-Bless-Me-white.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -452,7 +452,7 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'black',
     colorways: [
-      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/God_is_with_me.png' },
+      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/God_is_with_me.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -473,8 +473,8 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'red',
     colorways: [
-      { name: 'red', label: 'Crimson Red', swatch: '#991b1b', image: '/assets/I-am-Confident-red-1.png' },
-      { name: 'red-v2', label: 'Crimson Red II', swatch: '#7f1d1d', image: '/assets/I-am-Confident-red-2.png' },
+      { name: 'red', label: 'Crimson Red', swatch: '#991b1b', image: '/assets/I-am-Confident-red-1.webp' },
+      { name: 'red-v2', label: 'Crimson Red II', swatch: '#7f1d1d', image: '/assets/I-am-Confident-red-2.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -495,8 +495,8 @@ const seed: Product[] = [
     collection: 'Remix',
     defaultColor: 'black',
     colorways: [
-      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Jesus_saves.png' },
-      { name: 'ash', label: 'Ash Grey', swatch: '#9ca3af', image: '/assets/Jesus_Saves_Gray.png' },
+      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Jesus_saves.webp' },
+      { name: 'ash', label: 'Ash Grey', swatch: '#9ca3af', image: '/assets/Jesus_Saves_Gray.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -517,8 +517,8 @@ const seed: Product[] = [
     collection: 'Remix',
     defaultColor: 'white',
     colorways: [
-      { name: 'white', label: 'Magnolia White', swatch: '#f5f5f5', image: '/assets/Jesus_Sets_Free.png' },
-      { name: 'white-k2', label: 'Magnolia White II', swatch: '#fffbf0', image: '/assets/K2.png' },
+      { name: 'white', label: 'Magnolia White', swatch: '#f5f5f5', image: '/assets/Jesus_Sets_Free.webp' },
+      { name: 'white-k2', label: 'Magnolia White II', swatch: '#fffbf0', image: '/assets/K2.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -539,12 +539,12 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'black',
     colorways: [
-      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/LOTW-1-alt.png' },
-      { name: 'black-ii', label: 'LOTW II Black', swatch: '#1a1a1a', image: '/assets/LOTW-2-alt.png' },
-      { name: 'roman-i', label: 'LOTW I', swatch: '#374151', image: '/assets/LOTW-I.png' },
-      { name: 'roman-ii', label: 'LOTW II', swatch: '#4b5563', image: '/assets/LOTW-II.png' },
-      { name: 'brown', label: 'Earth Brown', swatch: '#78350f', image: '/assets/LOTW-brown-1.png' },
-      { name: 'pink', label: 'Dusty Pink', swatch: '#f472b6', image: '/assets/LOTW-pink-1.png' },
+      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/LOTW-1-alt.webp' },
+      { name: 'black-ii', label: 'LOTW II Black', swatch: '#1a1a1a', image: '/assets/LOTW-2-alt.webp' },
+      { name: 'roman-i', label: 'LOTW I', swatch: '#374151', image: '/assets/LOTW-I.webp' },
+      { name: 'roman-ii', label: 'LOTW II', swatch: '#4b5563', image: '/assets/LOTW-II.webp' },
+      { name: 'brown', label: 'Earth Brown', swatch: '#78350f', image: '/assets/LOTW-brown-1.webp' },
+      { name: 'pink', label: 'Dusty Pink', swatch: '#f472b6', image: '/assets/LOTW-pink-1.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -565,7 +565,7 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'black',
     colorways: [
-      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Made_For_More.jpg' },
+      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Made_For_More.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -585,7 +585,7 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'black',
     colorways: [
-      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Psalms-3v6.png' },
+      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Psalms-3v6.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -606,7 +606,7 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'red',
     colorways: [
-      { name: 'red', label: 'Crimson Red', swatch: '#991b1b', image: '/assets/Redemption.png' },
+      { name: 'red', label: 'Crimson Red', swatch: '#991b1b', image: '/assets/Redemption.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -631,7 +631,7 @@ const seed: Product[] = [
         name: 'white',
         label: 'Magnolia White',
         swatch: '#f5f5f5',
-        image: '/assets/Redemption_through_the_blood.png',
+        image: '/assets/Redemption_through_the_blood.webp',
       },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
@@ -652,7 +652,7 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'black',
     colorways: [
-      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Submit_to_God.png' },
+      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Submit_to_God.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -673,12 +673,12 @@ const seed: Product[] = [
     collection: 'Remix',
     defaultColor: 'white',
     colorways: [
-      { name: 'white', label: "God's Word – White", swatch: '#f5f5f5', image: '/assets/The-Script-of-Life.png' },
-      { name: 'tsol-2', label: 'TSOL 2 – White', swatch: '#f0f0f0', image: '/assets/TSOL-2.png' },
-      { name: 'tsol-3', label: 'TSOL 3 – Script', swatch: '#e8e8e8', image: '/assets/TSOL-3.png' },
-      { name: 'tsol-4', label: 'TSOL 4 – Bold', swatch: '#dddddd', image: '/assets/TSOL-4.png' },
-      { name: 'tsol-5', label: 'TSOL 5 – Premium', swatch: '#d0d0d0', image: '/assets/TSOL-5.png' },
-      { name: 'red', label: 'TSOL Red', swatch: '#991b1b', image: '/assets/TSOL-red-4.png' },
+      { name: 'white', label: "God's Word – White", swatch: '#f5f5f5', image: '/assets/The-Script-of-Life.webp' },
+      { name: 'tsol-2', label: 'TSOL 2 – White', swatch: '#f0f0f0', image: '/assets/TSOL-2.webp' },
+      { name: 'tsol-3', label: 'TSOL 3 – Script', swatch: '#e8e8e8', image: '/assets/TSOL-3.webp' },
+      { name: 'tsol-4', label: 'TSOL 4 – Bold', swatch: '#dddddd', image: '/assets/TSOL-4.webp' },
+      { name: 'tsol-5', label: 'TSOL 5 – Premium', swatch: '#d0d0d0', image: '/assets/TSOL-5.webp' },
+      { name: 'red', label: 'TSOL Red', swatch: '#991b1b', image: '/assets/TSOL-red-4.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -700,7 +700,7 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'black',
     colorways: [
-      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Vain_Is_The_Help_Of_Man.jpg' },
+      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Vain_Is_The_Help_Of_Man.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -721,7 +721,7 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'rust',
     colorways: [
-      { name: 'rust', label: 'Burnt Sienna', swatch: '#92400e', image: '/assets/With_God.png' },
+      { name: 'rust', label: 'Burnt Sienna', swatch: '#92400e', image: '/assets/With_God.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -742,8 +742,8 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'ash',
     colorways: [
-      { name: 'ash', label: 'Ash Grey', swatch: '#9ca3af', image: '/assets/White-on-Ash.png' },
-      { name: 'ash-v2', label: 'Ash Grey II', swatch: '#d1d5db', image: '/assets/white-on-ash1.png' },
+      { name: 'ash', label: 'Ash Grey', swatch: '#9ca3af', image: '/assets/White-on-Ash.webp' },
+      { name: 'ash-v2', label: 'Ash Grey II', swatch: '#d1d5db', image: '/assets/white-on-ash1.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -763,7 +763,7 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'red',
     colorways: [
-      { name: 'red', label: 'Crimson Red', swatch: '#991b1b', image: '/assets/white-on-red.png' },
+      { name: 'red', label: 'Crimson Red', swatch: '#991b1b', image: '/assets/white-on-red.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -784,8 +784,8 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'white',
     colorways: [
-      { name: 'white', label: 'Magnolia White', swatch: '#f5f5f5', image: '/assets/Black-on-white.png' },
-      { name: 'white-v2', label: 'Magnolia White II', swatch: '#fffbf0', image: '/assets/Black-on-white-1.png' },
+      { name: 'white', label: 'Magnolia White', swatch: '#f5f5f5', image: '/assets/Black-on-white.webp' },
+      { name: 'white-v2', label: 'Magnolia White II', swatch: '#fffbf0', image: '/assets/Black-on-white-1.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -805,7 +805,7 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'ash',
     colorways: [
-      { name: 'ash', label: 'Ash Grey', swatch: '#9ca3af', image: '/assets/Black-text-on-ash.png' },
+      { name: 'ash', label: 'Ash Grey', swatch: '#9ca3af', image: '/assets/Black-text-on-ash.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -830,19 +830,19 @@ const seed: Product[] = [
         name: 'cyan',
         label: 'Cyan Stroke',
         swatch: '#06b6d4',
-        image: '/assets/Black-with-cyan-stroke-on-white-1.png',
+        image: '/assets/Black-with-cyan-stroke-on-white-1.webp',
       },
       {
         name: 'red',
         label: 'Red Stroke',
         swatch: '#991b1b',
-        image: '/assets/Black-with-red-stroke-on-white.png',
+        image: '/assets/Black-with-red-stroke-on-white.webp',
       },
       {
         name: 'gold',
         label: 'Gold Stroke',
         swatch: '#d97706',
-        image: '/assets/Black-with-yellow-stroke-on-white.png',
+        image: '/assets/Black-with-yellow-stroke-on-white.webp',
       },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
@@ -863,7 +863,7 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'gold',
     colorways: [
-      { name: 'gold', label: 'Royal Gold', swatch: '#d97706', image: '/assets/Gold-on-white.png' },
+      { name: 'gold', label: 'Royal Gold', swatch: '#d97706', image: '/assets/Gold-on-white.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -884,7 +884,7 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'ash',
     colorways: [
-      { name: 'ash', label: 'Ash Grey', swatch: '#9ca3af', image: '/assets/Ash-on-Black---maze.png' },
+      { name: 'ash', label: 'Ash Grey', swatch: '#9ca3af', image: '/assets/Ash-on-Black---maze.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -904,7 +904,7 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'black',
     colorways: [
-      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Created_with_purpose.png' },
+      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Created_with_purpose.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -924,7 +924,7 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'brown',
     colorways: [
-      { name: 'brown', label: 'Earth Brown', swatch: '#78350f', image: '/assets/Brown-2.png' },
+      { name: 'brown', label: 'Earth Brown', swatch: '#78350f', image: '/assets/Brown-2.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -945,8 +945,8 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'black',
     colorways: [
-      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Levush_Text_CollegiateFLF.jpg' },
-      { name: 'black-bold', label: 'GoBold Black', swatch: '#111111', image: '/assets/Levush_Text_Gobold_Bold.jpg' },
+      { name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/Levush_Text_CollegiateFLF.webp' },
+      { name: 'black-bold', label: 'GoBold Black', swatch: '#111111', image: '/assets/Levush_Text_Gobold_Bold.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -966,7 +966,7 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'white',
     colorways: [
-      { name: 'white', label: 'Magnolia White', swatch: '#f5f5f5', image: '/assets/White_Shirt.png' },
+      { name: 'white', label: 'Magnolia White', swatch: '#f5f5f5', image: '/assets/White_Shirt.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
@@ -987,19 +987,16 @@ const seed: Product[] = [
     collection: 'Statement',
     defaultColor: 'ash',
     colorways: [
-      { name: 'ash', label: 'Ash Grey', swatch: '#9ca3af', image: '/assets/Ash_Shirt.png' },
-      { name: 'ash-v2', label: 'Ash Grey II', swatch: '#d1d5db', image: '/assets/Ash_Shirt---Copy.png' },
+      { name: 'ash', label: 'Ash Grey', swatch: '#9ca3af', image: '/assets/Ash_Shirt.webp' },
+      { name: 'ash-v2', label: 'Ash Grey II', swatch: '#d1d5db', image: '/assets/Ash_Shirt---Copy.webp' },
     ],
     sizes: ['S', 'M', 'L', 'XL', '2XL'],
     isNew: true,
   },
 ];
 
-let memory: Product[] = seed.map((p) => ({ ...p }));
-
 /** Seed Firestore once if the products collection is empty. */
 export async function initProducts(): Promise<void> {
-  if (!db) return;
   const snap = await db.collection(COLLECTION).limit(1).get();
   if (snap.empty) {
     const batch = db.batch();
@@ -1014,13 +1011,16 @@ function slugify(s: string): string {
 }
 
 export async function listProducts(): Promise<Product[]> {
-  if (!db) return [...memory];
   const snap = await db.collection(COLLECTION).get();
   return snap.docs.map((d) => d.data() as Product);
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | undefined> {
-  return (await listProducts()).find((p) => p.slug === slug);
+  const snap = await db.collection(COLLECTION).where('slug', '==', slug).limit(1).get();
+  if (!snap.empty) {
+    return snap.docs[0].data() as Product;
+  }
+  return undefined;
 }
 
 export async function createProduct(input: Partial<Product>): Promise<Product> {
@@ -1038,28 +1038,18 @@ export async function createProduct(input: Partial<Product>): Promise<Product> {
     collection: input.collection ?? 'Statement',
     colorways: input.colorways?.length
       ? input.colorways
-      : [{ name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/created-purpose-black.jpg' }],
+      : [{ name: 'black', label: 'Raisin Black', swatch: '#242124', image: '/assets/created-purpose-black.webp' }],
     defaultColor: input.defaultColor ?? input.colorways?.[0]?.name ?? 'black',
     sizes: input.sizes?.length ? input.sizes : ['S', 'M', 'L', 'XL', '2XL'],
     isNew: input.isNew ?? false,
     isBestSeller: input.isBestSeller ?? false,
     isHidden: input.isHidden ?? false,
   };
-  if (!db) {
-    memory.unshift(product);
-  } else {
-    await db.collection(COLLECTION).doc(product.id).set(product);
-  }
+  await db.collection(COLLECTION).doc(product.id).set(product);
   return product;
 }
 
 export async function updateProduct(id: string, patch: Partial<Product>): Promise<Product | null> {
-  if (!db) {
-    const idx = memory.findIndex((p) => p.id === id);
-    if (idx === -1) return null;
-    memory[idx] = { ...memory[idx], ...patch, id };
-    return memory[idx];
-  }
   const ref = db.collection(COLLECTION).doc(id);
   const snap = await ref.get();
   if (!snap.exists) return null;
@@ -1069,11 +1059,6 @@ export async function updateProduct(id: string, patch: Partial<Product>): Promis
 }
 
 export async function deleteProduct(id: string): Promise<boolean> {
-  if (!db) {
-    const before = memory.length;
-    memory = memory.filter((p) => p.id !== id);
-    return memory.length < before;
-  }
   const ref = db.collection(COLLECTION).doc(id);
   const snap = await ref.get();
   if (!snap.exists) return false;
@@ -1081,8 +1066,12 @@ export async function deleteProduct(id: string): Promise<boolean> {
   return true;
 }
 
-/** Price lookup used by order validation. */
+/** Price lookup directly from Firestore for order validation. */
 export async function priceOf(productId: string): Promise<number | undefined> {
-  const p = (await listProducts()).find((x) => x.id === productId);
-  return p?.price;
+  const doc = await db.collection(COLLECTION).doc(productId).get();
+  if (doc.exists) {
+    return (doc.data() as Product).price;
+  }
+  return undefined;
 }
+

@@ -8,7 +8,7 @@ dist/
 build/
 **/build/
 
-# Local env files
+# Local env files (Secrets)
 .env
 .env.local
 .env.*.local
@@ -19,6 +19,7 @@ build/
 # IDE configurations
 .vscode/
 .idea/
+.claude/
 *.suo
 *.ntvs*
 *.njsproj
@@ -36,17 +37,17 @@ Thumbs.db
 .vite/
 .turbo/
 .vercel/
+client/.vercel/
 
-# Secrets & Firebase Service Account Keys
-*.json
-!package.json
-!tsconfig*.json
-!client/package.json
-!client/tsconfig*.json
-!server/package.json
-!server/tsconfig*.json
+# Secrets & Service Account Keys
+*service-account*.json
+*serviceAccount*.json
+*adminsdk*.json
+*credentials*.json
+levush-*.json
 
-# Large binary assets (images served statically — not tracked in git)
+# Scratch & Data Dumps
+formatted_products.json
+full_catalog.json
+parsed_new_products.json
 assets/
-client/public/assets/
-

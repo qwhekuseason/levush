@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { MinusIcon, PlusIcon } from '@/components/icons';
-import { formatPrice } from '@/lib/format';
+import { formatPrice, toWebp } from '@/lib/format';
 
 const FREE_SHIPPING_THRESHOLD = 400;
 const SHIPPING_FEE = 30;
@@ -31,7 +31,13 @@ export default function Cart() {
         <ul className="divide-y divide-bone/10">
           {items.map((item) => (
             <li key={item.id} className="flex gap-4 sm:gap-5 py-6">
-              <img src={item.image} alt={item.name} className="h-28 sm:h-32 w-24 sm:w-28 rounded-xl object-cover" />
+              <img
+                src={toWebp(item.image)}
+                alt={item.name}
+                loading="lazy"
+                decoding="async"
+                className="h-28 sm:h-32 w-24 sm:w-28 rounded-xl object-cover"
+              />
               <div className="flex flex-1 flex-col">
                 <div className="flex justify-between gap-3">
                   <div>

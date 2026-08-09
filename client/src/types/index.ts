@@ -128,18 +128,3 @@ export interface Coupon {
   createdAt: number;
 }
 
-export interface Rewards {
-  email: string;
-  points: number;
-  lastSpinDay: string | null;
-  lastQuizDay: string | null;
-  coupons: Coupon[];
-}
-
-export interface SpinResult {
-  alreadySpun: boolean;
-  prizeLabel: string;
-  prizeIndex: number;
-  coupon: Coupon | null;
-  rewards: Omit<Rewards, 'coupons'>;
-}

@@ -48,6 +48,8 @@ export default function About() {
             <img
               src={feature ? productImage(feature, 'black') : ''}
               alt="Levush"
+              loading="lazy"
+              decoding="async"
               className="h-full w-full object-cover"
             />
           </div>

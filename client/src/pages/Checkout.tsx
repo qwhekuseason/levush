@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
-import { useRewards } from '@/context/RewardsContext';
 import { api } from '@/lib/api';
-import { formatPrice } from '@/lib/format';
+import { formatPrice, toWebp } from '@/lib/format';
 import { ArrowRight } from '@/components/icons';
 
 const FREE_SHIPPING_THRESHOLD = 400;
@@ -13,7 +12,6 @@ const SHIPPING_FEE = 30;
 export default function Checkout() {
   const { items, subtotal, clear } = useCart();
   const { user, authHeader } = useAuth();
-  const { refresh: refreshRewards } = useRewards();
 
   const [email, setEmail] = useState(user?.email ?? '');
   const [firstName, setFirstName] = useState('');
@@ -70,7 +68,6 @@ export default function Checkout() {
       );
       setOrderId(res.id);
       clear();
-      void refreshRewards();
     } catch (err) {
       setError(
         err instanceof Error
@@ -249,7 +246,13 @@ export default function Checkout() {
               {items.map((item) => (
                 <li key={item.id} className="flex gap-4 py-4">
                   <div className="relative">
-                    <img src={item.image} alt={item.name} className="h-16 w-16 rounded-md object-cover border border-bone/10" />
+                    <img
+                      src={toWebp(item.image)}
+                      alt={item.name}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-16 w-16 rounded-md object-cover border border-bone/10"
+                    />
                     <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-bone text-[10px] font-bold text-ink">
                       {item.quantity}
                     </span>

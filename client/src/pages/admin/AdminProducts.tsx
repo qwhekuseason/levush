@@ -2,7 +2,9 @@ import { useState, type ChangeEvent } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useCatalog } from '@/context/CatalogContext';
 import { api } from '@/lib/api';
-import { classNames, formatPrice, getDiscountInfo, productImage } from '@/lib/format';
+import { classNames, formatPrice, getDiscountInfo, productImage, toWebp } from '@/lib/format';
+import { compressImageToWebp, compressImageToDataUrl } from '@/lib/imageCompressor';
+import { storage, uploadImageToStorage } from '@/lib/firebase';
 import type { Colorway, Product, ProductTier } from '@/types';
 
 const COLLECTIONS = ['Statement', 'Remix'];
@@ -33,6 +35,7 @@ export default function AdminProducts() {
   const [draft, setDraft] = useState<Partial<Product> | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const startCreate = () => {
@@ -65,12 +68,29 @@ export default function AdminProducts() {
   const removeColorway = (i: number) =>
     setDraft((d) => (d ? { ...d, colorways: (d.colorways ?? []).filter((_, idx) => idx !== i) } : d));
 
-  const onImageFile = (i: number, e: ChangeEvent<HTMLInputElement>) => {
+  const onImageFile = async (i: number, e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setColorway(i, { image: String(reader.result) });
-    reader.readAsDataURL(file);
+    setUploadingIndex(i);
+    setError(null);
+    try {
+      if (storage) {
+        // Production: compress on-the-fly and upload to Firebase Storage
+        const blob = await compressImageToWebp(file, { maxWidth: 1400, quality: 0.85 });
+        const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9-_]/g, '_');
+        const path = `products/${Date.now()}_${cleanName}.webp`;
+        const url = await uploadImageToStorage(blob, path);
+        setColorway(i, { image: url });
+      } else {
+        // Demo / local mode: compress to ultra-light WebP base64 DataURL (<50KB)
+        const dataUrl = await compressImageToDataUrl(file, { maxWidth: 1000, quality: 0.8 });
+        setColorway(i, { image: dataUrl });
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Image upload failed.');
+    } finally {
+      setUploadingIndex(null);
+    }
   };
 
   const applyDiscountPercent = (percent: number) => {
@@ -311,16 +331,35 @@ export default function AdminProducts() {
               {(draft.colorways ?? []).map((c, i) => (
                 <div key={i} className="flex flex-wrap items-center gap-3 rounded-lg border border-bone/10 p-3">
                   {c.image ? (
-                    <img src={c.image} alt="" className="h-16 w-14 rounded object-cover" />
+                    <img
+                      src={toWebp(c.image)}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      className="h-16 w-14 rounded object-cover"
+                    />
                   ) : (
                     <div className="grid h-16 w-14 place-items-center rounded bg-ink-700 text-[10px] text-bone/40">no img</div>
                   )}
                   <input className="field w-28" placeholder="key (black)" value={c.name} onChange={(e) => setColorway(i, { name: e.target.value })} />
                   <input className="field w-36" placeholder="Label" value={c.label} onChange={(e) => setColorway(i, { label: e.target.value })} />
                   <input type="color" className="h-10 w-12 rounded border border-bone/15 bg-ink-700" value={c.swatch} onChange={(e) => setColorway(i, { swatch: e.target.value })} />
-                  <label className="btn-outline cursor-pointer !py-2 !text-xs">
-                    Upload photo
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => onImageFile(i, e)} />
+                  <label className="btn-outline cursor-pointer !py-2 !text-xs flex items-center gap-1.5">
+                    {uploadingIndex === i ? (
+                      <span className="flex items-center gap-1 text-gold">
+                        <span className="h-3 w-3 animate-spin rounded-full border-2 border-gold border-t-transparent" />
+                        Optimizing…
+                      </span>
+                    ) : (
+                      'Upload photo'
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={uploadingIndex === i}
+                      className="hidden"
+                      onChange={(e) => onImageFile(i, e)}
+                    />
                   </label>
                   <input className="field min-w-[10rem] flex-1" placeholder="or image URL / path" value={c.image} onChange={(e) => setColorway(i, { image: e.target.value })} />
                   <button onClick={() => removeColorway(i)} className="text-sm text-bone/45 hover:text-red-400">Remove</button>
@@ -345,7 +384,13 @@ export default function AdminProducts() {
           const discount = getDiscountInfo(p);
           return (
             <div key={p.id} className={classNames('card-surface flex items-center gap-4 p-3', editingId === p.id && 'ring-1 ring-gold', p.isHidden && 'opacity-50')}>
-              <img src={productImage(p, p.defaultColor)} alt={p.name} className="h-16 w-14 rounded object-cover" />
+              <img
+                src={productImage(p, p.defaultColor)}
+                alt={p.name}
+                loading="lazy"
+                decoding="async"
+                className="h-16 w-14 rounded object-cover"
+              />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <p className="truncate font-medium text-bone">{p.name}</p>

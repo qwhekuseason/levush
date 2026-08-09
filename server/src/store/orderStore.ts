@@ -39,7 +39,6 @@ export interface Order {
 }
 
 const COLLECTION = 'orders';
-let memory: Order[] = [];
 
 export async function createOrder(
   input: Omit<Order, 'id' | 'status' | 'createdAt'>
@@ -50,33 +49,21 @@ export async function createOrder(
     status: 'received',
     createdAt: Date.now(),
   };
-  if (!db) {
-    memory.unshift(order);
-    return order;
-  }
   await db.collection(COLLECTION).doc(order.id).set(order);
   return order;
 }
 
 export async function listOrdersForUser(uid: string): Promise<Order[]> {
-  if (!db) return memory.filter((o) => o.uid === uid).sort((a, b) => b.createdAt - a.createdAt);
   const snap = await db.collection(COLLECTION).where('uid', '==', uid).get();
   return snap.docs.map((d) => d.data() as Order).sort((a, b) => b.createdAt - a.createdAt);
 }
 
 export async function listAllOrders(): Promise<Order[]> {
-  if (!db) return [...memory].sort((a, b) => b.createdAt - a.createdAt);
   const snap = await db.collection(COLLECTION).orderBy('createdAt', 'desc').limit(500).get();
   return snap.docs.map((d) => d.data() as Order);
 }
 
 export async function updateOrderStatus(id: string, status: OrderStatus): Promise<Order | null> {
-  if (!db) {
-    const o = memory.find((x) => x.id === id);
-    if (!o) return null;
-    o.status = status;
-    return o;
-  }
   const ref = db.collection(COLLECTION).doc(id);
   const snap = await ref.get();
   if (!snap.exists) return null;

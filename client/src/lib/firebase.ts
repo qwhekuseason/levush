@@ -1,6 +1,7 @@
-import { initializeApp, type FirebaseApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, type Auth } from 'firebase/auth';
-import { getFirestore, type Firestore } from 'firebase/firestore';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -11,24 +12,22 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-/**
- * Firebase is optional for local browsing. We only initialise when a real
- * API key is present so the app still mounts with the placeholder .env stub.
- */
-export const firebaseEnabled = Boolean(
-  firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith('your-')
-);
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-let app: FirebaseApp | undefined;
-let authInstance: Auth | undefined;
-let dbInstance: Firestore | undefined;
-
-if (firebaseEnabled) {
-  app = initializeApp(firebaseConfig);
-  authInstance = getAuth(app);
-  dbInstance = getFirestore(app);
-}
-
-export const auth = authInstance;
-export const db = dbInstance;
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
+export const firebaseEnabled = true;
+
+/**
+ * Uploads a compressed image blob to Firebase Storage and returns its public CDN URL.
+ */
+export async function uploadImageToStorage(blob: Blob, path: string): Promise<string> {
+  const storageRef = ref(storage, path);
+  const snapshot = await uploadBytes(storageRef, blob, {
+    contentType: 'image/webp',
+    cacheControl: 'public, max-age=31536000, immutable',
+  });
+  return getDownloadURL(snapshot.ref);
+}

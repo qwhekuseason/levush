@@ -55,6 +55,8 @@ export default function ProductDetail() {
             <img
               src={productImage(product, color)}
               alt={`${product.name} — ${color}`}
+              fetchPriority="high"
+              decoding="async"
               className="h-full w-full object-cover"
             />
           </div>
@@ -69,7 +71,13 @@ export default function ProductDetail() {
                     color === c.name ? 'border-gold' : 'border-transparent opacity-70 hover:opacity-100'
                   )}
                 >
-                  <img src={c.image} alt={c.label} className="h-full w-full object-cover" />
+                  <img
+                    src={productImage(product, c.name)}
+                    alt={c.label}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                  />
                 </button>
               ))}
             </div>

@@ -12,46 +12,46 @@ export default function Home() {
   const hero = products.find((p) => p.id === 'lion-of-judah') ?? products[0];
   const featured = products.slice(0, 4);
 
-  // Carousel: hero poster + new drops & model shots
+  // Carousel: hero poster + new drops & model shots (using optimized WebP)
   const carouselSlides = [
     {
-      image: '/assets/Flyer_1-upd.png',
+      image: '/assets/Flyer_1-upd.webp',
       name: 'Special Drop',
       tagline: 'Kingdom Apparel & Heavyweight Essentials.',
       ref: 'Levush — Ghana',
     },
     {
-      image: '/assets/photo_2026-08-03_20-15-53.jpg',
+      image: '/assets/photo_2026-08-03_20-15-53.webp',
       name: 'New Statement Piece',
       tagline: 'Every piece, a word worth wearing.',
       ref: 'Statement Collection',
     },
     {
-      image: '/assets/photo_2026-08-03_20-15-37.jpg',
+      image: '/assets/photo_2026-08-03_20-15-37.webp',
       name: 'Scripture Streetwear',
       tagline: 'Wear what you believe.',
       ref: 'Remix Drop',
     },
     {
-      image: '/assets/hero-poster.jpg',
+      image: '/assets/hero-poster.webp',
       name: 'The Core Collection',
       tagline: 'Faith, Worn.',
       ref: 'Levush Edition',
     },
     {
-      image: '/assets/model-created-purpose.png',
+      image: '/assets/model-created-purpose.webp',
       name: 'Created With A Purpose',
       tagline: 'A reminder stitched into every thread.',
       ref: 'Jeremiah 29:11',
     },
     {
-      image: '/assets/model-lion-judah.png',
+      image: '/assets/model-lion-judah.webp',
       name: 'Lion of Judah',
       tagline: 'Strength wears a crown.',
       ref: 'Hosea 5:14 NKJV',
     },
     {
-      image: '/assets/model-hoodie.png',
+      image: '/assets/model-hoodie.webp',
       name: 'The Armor Hoodie',
       tagline: 'Put on the full armor.',
       ref: 'Ephesians 6:11',
@@ -61,6 +61,14 @@ export default function Home() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [animKey, setAnimKey] = useState(0); // triggers re-animation on slide change
   const total = carouselSlides.length;
+
+  // Preload all carousel slide images in the background for instant switching
+  useEffect(() => {
+    carouselSlides.forEach((slide) => {
+      const img = new Image();
+      img.src = slide.image;
+    });
+  }, []);
 
   useEffect(() => {
     if (!total) return;
@@ -133,20 +141,22 @@ export default function Home() {
             {/* Slides: each crossfades in/out */}
             {carouselSlides.map((slide, i) => (
               <div
-                key={i}
+                key={slide.image}
                 className={[
                   'absolute inset-0 transition-opacity duration-1000 ease-in-out',
-                  i === activeSlide ? 'opacity-100 z-10' : 'opacity-0 z-0',
+                  i === activeSlide ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none',
                 ].join(' ')}
               >
-                {/* Image with Ken Burns zoom — restarts on each active state via animKey key */}
+                {/* Image — persistent DOM node for instant zero-lag display */}
                 <img
-                  key={i === activeSlide ? `img-${animKey}` : `img-idle-${i}`}
                   src={slide.image}
                   alt={slide.name}
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
+                  fetchPriority={i === 0 ? 'high' : 'auto'}
                   className={[
-                    'h-full w-full object-cover object-top',
-                    i === activeSlide ? 'animate-ken-burns' : '',
+                    'h-full w-full object-cover object-top transition-transform duration-[6000ms] ease-out',
+                    i === activeSlide ? 'scale-105' : 'scale-100',
                   ].join(' ')}
                   style={{ minHeight: '60vh' }}
                 />

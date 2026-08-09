@@ -1,12 +1,22 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
 import { requireAdmin } from '../lib/auth.js';
 import {
   listAllCoupons,
   createCustomCoupon,
   deleteCoupon,
-} from '../store/rewardsStore.js';
+  findCoupon,
+} from '../store/couponStore.js';
 
 const router = Router();
+
+/** Validate a coupon code (used at checkout). */
+router.post('/validate', async (req, res) => {
+  const code = String(req.body?.code ?? '').trim().toUpperCase();
+  if (!code) return res.status(400).json({ valid: false, error: 'Enter a code.' });
+  const coupon = await findCoupon(code);
+  if (!coupon || coupon.used) return res.json({ valid: false });
+  res.json({ valid: true, code: coupon.code, kind: coupon.kind, value: coupon.value, label: coupon.label });
+});
 
 router.get('/', requireAdmin, async (_req, res) => {
   try {

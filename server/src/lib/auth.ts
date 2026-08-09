@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
-import { firebaseReady, verifyDecoded } from './firebaseAdmin.js';
+import { verifyDecoded } from './firebaseAdmin.js';
 
 export type Role = 'admin' | 'customer';
 
@@ -11,26 +11,16 @@ export interface Caller {
 
 // Allowlist of admin emails (comma-separated in ADMIN_EMAILS).
 const adminEmails = new Set(
-  (process.env.ADMIN_EMAILS ?? '')
+  (process.env.ADMIN_EMAILS ?? 'admin@levush.com')
     .split(',')
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean)
 );
 
-/**
- * Dev tokens (`Bearer dev:<email>`) are ONLY honoured when Firebase isn't
- * configured, so once you add real credentials they stop working automatically.
- * This lets you exercise the admin panel locally without a Firebase project.
- */
-const allowDevTokens = !firebaseReady;
-const DEV_ADMIN = 'admin@levush.test';
-
 function roleFor(email: string | null | undefined): Role {
   if (!email) return 'customer';
   const e = email.toLowerCase();
   if (adminEmails.has(e)) return 'admin';
-  // Built-in dev admin only when no allowlist + no Firebase (local testing).
-  if (allowDevTokens && adminEmails.size === 0 && e === DEV_ADMIN) return 'admin';
   return 'customer';
 }
 
@@ -40,17 +30,10 @@ function bearer(req: Request): string | undefined {
   return undefined;
 }
 
-/** Resolve who is calling, or null if no/invalid credentials. */
+/** Resolve who is calling using real Firebase ID Token, or null if invalid. */
 export async function resolveCaller(req: Request): Promise<Caller | null> {
   const token = bearer(req);
   if (!token) return null;
-
-  if (token.startsWith('dev:')) {
-    if (!allowDevTokens) return null;
-    const email = token.slice(4).trim().toLowerCase();
-    if (!email) return null;
-    return { uid: `dev:${email}`, email, role: roleFor(email) };
-  }
 
   const decoded = await verifyDecoded(token);
   if (!decoded) return null;
@@ -81,6 +64,3 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
   req.caller = caller;
   next();
 }
-
-export const devAdminEmail = DEV_ADMIN;
-export const devTokensEnabled = allowDevTokens;

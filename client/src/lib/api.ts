@@ -5,8 +5,6 @@ import type {
   Order,
   OrderStatus,
   Product,
-  Rewards,
-  SpinResult,
 } from '@/types';
 
 const BASE = '/api';
@@ -67,19 +65,10 @@ export const api = {
   updateOrderStatus: (id: string, status: OrderStatus, auth: string) =>
     request<Order>(`/orders/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }, auth),
 
-  // Rewards & games
-  getWheel: () => request<{ segments: string[] }>('/rewards/wheel'),
-  getRewards: (auth: string) => request<Rewards>('/rewards/me', {}, auth),
-  spin: (auth: string) => request<SpinResult>('/rewards/spin', { method: 'POST' }, auth),
-  submitQuiz: (correct: number, auth: string) =>
-    request<{ awarded: number; alreadyToday: boolean; rewards: Omit<Rewards, 'coupons'> }>(
-      '/rewards/quiz',
-      { method: 'POST', body: JSON.stringify({ correct }) },
-      auth
-    ),
+  // Coupons
   validateCoupon: (code: string) =>
     request<{ valid: boolean; code?: string; kind?: CouponKind; value?: number; label?: string }>(
-      '/rewards/coupon/validate',
+      '/coupons/validate',
       { method: 'POST', body: JSON.stringify({ code }) }
     ),
 

@@ -13,11 +13,18 @@ export function formatPrice(amount: number): string {
   return cedi.format(amount);
 }
 
-/** Resolve the image for a product's given (or default) colourway. */
+/** Convert local asset paths to optimized .webp equivalent */
+export function toWebp(path: string | undefined | null): string {
+  if (!path) return '';
+  if (path.startsWith('http') || path.endsWith('.svg')) return path;
+  return path.replace(/\.(png|jpg|jpeg)$/i, '.webp');
+}
+
+/** Resolve the image for a product's given (or default) colourway in WebP format. */
 export function productImage(product: Product, color?: ColorwayName): string {
   const target = color ?? product.defaultColor;
   const match = product.colorways.find((c) => c.name === target);
-  return (match ?? product.colorways[0]).image;
+  return toWebp((match ?? product.colorways[0]).image);
 }
 
 export interface DiscountInfo {

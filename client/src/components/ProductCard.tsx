@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Product } from '@/types';
-import { formatPrice, getDiscountInfo } from '@/lib/format';
+import { formatPrice, getDiscountInfo, toWebp } from '@/lib/format';
 
 export default function ProductCard({ product, preferredColor }: { product: Product; preferredColor?: string }) {
   const matchingColor = preferredColor
@@ -10,6 +10,7 @@ export default function ProductCard({ product, preferredColor }: { product: Prod
 
   const [selectedColor, setSelectedColor] = useState(matchingColor ?? product.defaultColor);
   const [loaded, setLoaded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     if (matchingColor) {
@@ -22,8 +23,14 @@ export default function ProductCard({ product, preferredColor }: { product: Prod
   const altColorway = product.colorways.find((c) => c.name !== activeColorway.name);
   const discount = getDiscountInfo(product);
 
+  const mainImageUrl = toWebp(activeColorway.image);
+  const altImageUrl = altColorway ? toWebp(altColorway.image) : null;
+
   return (
-    <div className="group relative block">
+    <div
+      className="group relative block"
+      onMouseEnter={() => setIsHovered(true)}
+    >
       <div
         className="absolute -inset-1 rounded-3xl bg-gold/20 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100"
         aria-hidden="true"
@@ -37,21 +44,23 @@ export default function ProductCard({ product, preferredColor }: { product: Prod
           )}
 
           <img
-            src={activeColorway.image}
+            src={mainImageUrl}
             alt={`${product.name} - ${activeColorway.label}`}
             loading="lazy"
+            decoding="async"
             onLoad={() => setLoaded(true)}
-            className={`h-full w-full object-cover transition-all duration-700 group-hover:scale-[1.04] ${
+            className={`h-full w-full object-cover transition-all duration-500 group-hover:scale-[1.04] ${
               loaded ? 'opacity-100' : 'opacity-0'
             }`}
           />
 
-          {altColorway && (
+          {altImageUrl && isHovered && (
             <img
-              src={altColorway.image}
+              src={altImageUrl}
               alt=""
               aria-hidden
               loading="lazy"
+              decoding="async"
               className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
             />
           )}

@@ -10,7 +10,7 @@ import {
   type OrderItem,
   type OrderStatus,
 } from '../store/orderStore.js';
-import { findCoupon, redeemCoupon } from '../store/rewardsStore.js';
+import { findCoupon, redeemCoupon } from '../store/couponStore.js';
 
 const router = Router();
 

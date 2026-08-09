@@ -1,54 +1,61 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import admin from 'firebase-admin';
 import type { Firestore } from 'firebase-admin/firestore';
 
 /**
- * Initialise Firebase Admin from one of:
- *   1. FIREBASE_SERVICE_ACCOUNT  — the service-account JSON as a string
- *   2. GOOGLE_APPLICATION_CREDENTIALS — path to the service-account JSON file
- *
- * If neither is present we run in "memory mode": no Firestore, and the stores
- * fall back to in-memory data so the API still works for local development.
+ * Initialise Firebase Admin SDK for Cloud Firestore and Firebase Authentication.
  */
 
-let firestore: Firestore | undefined;
-let initialised = false;
-
-function loadServiceAccount(): admin.ServiceAccount | undefined {
+function loadServiceAccount(): admin.ServiceAccount {
   const inline = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (inline) {
     try {
       return JSON.parse(inline) as admin.ServiceAccount;
     } catch {
-      console.warn('[firebase] FIREBASE_SERVICE_ACCOUNT is not valid JSON — ignoring.');
+      throw new Error('[firebase] FIREBASE_SERVICE_ACCOUNT is not valid JSON.');
     }
   }
-  const path = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  if (path) {
-    try {
-      return JSON.parse(readFileSync(path, 'utf8')) as admin.ServiceAccount;
-    } catch {
-      console.warn(`[firebase] Could not read credentials at ${path} — ignoring.`);
+
+  // Check configured path or default project credentials in workspace
+  const defaultPath = resolve(process.cwd(), '../levush-firebase-adminsdk-fbsvc-31b54df3c6.json');
+  const rootPath = resolve(process.cwd(), 'levush-firebase-adminsdk-fbsvc-31b54df3c6.json');
+  const configuredPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+
+  const candidatePaths = [configuredPath, defaultPath, rootPath].filter((p): p is string => Boolean(p));
+
+  for (const path of candidatePaths) {
+    if (existsSync(path)) {
+      try {
+        const raw = readFileSync(path, 'utf8');
+        return JSON.parse(raw) as admin.ServiceAccount;
+      } catch (err) {
+        console.warn(`[firebase] Could not parse credentials at ${path}`);
+      }
     }
   }
-  return undefined;
+
+  throw new Error(
+    '[firebase] Firebase credentials not found. Please provide GOOGLE_APPLICATION_CREDENTIALS or FIREBASE_SERVICE_ACCOUNT.'
+  );
 }
 
 const serviceAccount = loadServiceAccount();
 
-if (serviceAccount) {
-  admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-  firestore = admin.firestore();
-  initialised = true;
-  console.log('[firebase] Admin initialised — Firestore connected.');
-} else {
-  console.log('[firebase] No credentials found — running in memory mode (no Firestore).');
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    projectId: serviceAccount.projectId ?? 'levush',
+  });
 }
 
-export const db = firestore;
-export const firebaseReady = initialised;
+export const db: Firestore = admin.firestore();
+export const authAdmin = admin.auth();
+export const firebaseReady = true;
 
-/** Verify a client ID token; returns the uid or null if invalid/disabled. */
+console.log(`[firebase] Firebase Admin connected successfully to project: ${serviceAccount.projectId ?? 'levush'}`);
+
+/** Verify a client ID token, returning uid or null if invalid. */
 export async function verifyIdToken(token?: string): Promise<string | null> {
   const decoded = await verifyDecoded(token);
   return decoded?.uid ?? null;
@@ -59,28 +66,10 @@ export async function verifyDecoded(
   token?: string
 ): Promise<{ uid: string; email: string | null } | null> {
   if (!token) return null;
-  if (!initialised) {
-    // In dev/memory mode (no Firestore credentials), we decode the JWT without signature verification
-    // so that the frontend can use real Firebase Auth while the backend runs in memory mode.
-    try {
-      const parts = token.split('.');
-      if (parts.length === 3) {
-        const payloadStr = Buffer.from(parts[1], 'base64').toString('utf8');
-        const payload = JSON.parse(payloadStr);
-        if (payload.iss?.startsWith('https://securetoken.google.com/')) {
-          return { uid: payload.sub, email: payload.email ?? null };
-        }
-      }
-    } catch (e) {
-      console.warn('[firebase] Failed to decode dev token:', e);
-    }
-    return null;
-  }
   try {
     const decoded = await admin.auth().verifyIdToken(token);
     return { uid: decoded.uid, email: decoded.email ?? null };
-  } catch {
+  } catch (err) {
     return null;
   }
 }
-

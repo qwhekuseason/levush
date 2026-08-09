@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { useRewards } from '@/context/RewardsContext';
 import { api } from '@/lib/api';
 import { classNames, formatPrice } from '@/lib/format';
 import type { Order } from '@/types';
@@ -9,7 +8,6 @@ import { motion } from 'framer-motion';
 
 export default function Account() {
   const { user, role, isAdmin, loading, logout, authHeader } = useAuth();
-  const { points } = useRewards();
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
 
@@ -99,13 +97,6 @@ export default function Account() {
               <div>
                 <dt className="text-xs uppercase tracking-wider text-bone/45 mb-0.5">Email</dt>
                 <dd className="font-medium text-bone">{user.email}</dd>
-              </div>
-              <div className="pt-2">
-                <dt className="text-xs uppercase tracking-wider text-bone/45 mb-1">Levush Rewards</dt>
-                <dd className="flex items-center gap-2">
-                  <span className="text-3xl font-light text-gold font-serif">{points}</span>
-                  <span className="text-xs uppercase tracking-wide text-bone/60">points</span>
-                </dd>
               </div>
             </dl>
           </div>
