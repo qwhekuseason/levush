@@ -9,5 +9,9 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.0",
+    "@vercel/node": "^3.2.0"
   }
 }
