@@ -1,0 +1,28 @@
+# Dependencies
+node_modules
+client/node_modules
+server/node_modules
+**/node_modules
+
+# Build outputs
+client/dist
+server/dist
+dist
+build
+.vercel
+
+# Version Control
+.git
+.github
+
+# Environment & Secrets
+.env*
+levush-*.json
+*service-account*.json
+*adminsdk*.json
+
+# Data Dumps & Raw files
+assets/
+formatted_products.json
+full_catalog.json
+parsed_new_products.json
