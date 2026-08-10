@@ -50,7 +50,9 @@ levush-*.json
 formatted_products.json
 full_catalog.json
 parsed_new_products.json
-assets/
+/assets/
+!client/public/assets/
+!client/public/assets/**
 
 .vercel
 .env*

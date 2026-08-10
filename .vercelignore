@@ -22,7 +22,9 @@ levush-*.json
 *adminsdk*.json
 
 # Data Dumps & Raw files
-assets/
+/assets/
+!client/public/assets/
+!client/public/assets/**
 formatted_products.json
 full_catalog.json
 parsed_new_products.json

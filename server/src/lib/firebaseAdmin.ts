@@ -7,13 +7,17 @@ import type { Firestore } from 'firebase-admin/firestore';
  * Initialise Firebase Admin SDK for Cloud Firestore and Firebase Authentication.
  */
 
-function loadServiceAccount(): admin.ServiceAccount {
+function loadServiceAccount(): admin.ServiceAccount | null {
   const inline = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (inline) {
     try {
-      return JSON.parse(inline) as admin.ServiceAccount;
+      const parsed = JSON.parse(inline) as admin.ServiceAccount & { private_key?: string };
+      if (parsed.private_key && typeof parsed.private_key === 'string') {
+        parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+      }
+      return parsed;
     } catch {
-      throw new Error('[firebase] FIREBASE_SERVICE_ACCOUNT is not valid JSON.');
+      console.warn('[firebase] FIREBASE_SERVICE_ACCOUNT is not valid JSON.');
     }
   }
 
@@ -28,32 +32,40 @@ function loadServiceAccount(): admin.ServiceAccount {
     if (existsSync(path)) {
       try {
         const raw = readFileSync(path, 'utf8');
-        return JSON.parse(raw) as admin.ServiceAccount;
+        const parsed = JSON.parse(raw) as admin.ServiceAccount & { private_key?: string };
+        if (parsed.private_key && typeof parsed.private_key === 'string') {
+          parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+        }
+        return parsed;
       } catch (err) {
         console.warn(`[firebase] Could not parse credentials at ${path}`);
       }
     }
   }
 
-  throw new Error(
-    '[firebase] Firebase credentials not found. Please provide GOOGLE_APPLICATION_CREDENTIALS or FIREBASE_SERVICE_ACCOUNT.'
-  );
+  return null;
 }
 
 const serviceAccount = loadServiceAccount();
 
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    projectId: serviceAccount.projectId ?? 'levush',
-  });
+  if (serviceAccount) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      projectId: serviceAccount.projectId ?? 'levush',
+    });
+    console.log(`[firebase] Firebase Admin connected successfully to project: ${serviceAccount.projectId ?? 'levush'}`);
+  } else {
+    admin.initializeApp({
+      projectId: 'levush',
+    });
+    console.log('[firebase] Firebase Admin initialized with default project ID: levush');
+  }
 }
 
 export const db: Firestore = admin.firestore();
 export const authAdmin = admin.auth();
-export const firebaseReady = true;
-
-console.log(`[firebase] Firebase Admin connected successfully to project: ${serviceAccount.projectId ?? 'levush'}`);
+export const firebaseReady = Boolean(serviceAccount);
 
 /** Verify a client ID token, returning uid or null if invalid. */
 export async function verifyIdToken(token?: string): Promise<string | null> {
