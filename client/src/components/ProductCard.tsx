@@ -38,20 +38,12 @@ export default function ProductCard({ product, preferredColor }: { product: Prod
 
       <Link to={`/shop/${product.slug}`} className="block">
         <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-bone/5 bg-ink-700 transition-all duration-500 group-hover:border-gold/30">
-          {/* Skeleton Placeholder */}
-          {!loaded && (
-            <div className="absolute inset-0 animate-pulse bg-ink-600/50" />
-          )}
-
           <img
             src={mainImageUrl}
             alt={`${product.name} - ${activeColorway.label}`}
             loading="lazy"
             decoding="async"
-            onLoad={() => setLoaded(true)}
-            className={`h-full w-full object-cover transition-all duration-500 group-hover:scale-[1.04] ${
-              loaded ? 'opacity-100' : 'opacity-0'
-            }`}
+            className="h-full w-full object-cover transition-all duration-500 group-hover:scale-[1.04]"
           />
 
           {altImageUrl && isHovered && (

@@ -21,12 +21,55 @@ export default function Checkout() {
   const [phone, setPhone] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'paystack' | 'card'>('paystack');
 
+  // Coupon state
+  const [couponInput, setCouponInput] = useState('');
+  const [couponApplied, setCouponApplied] = useState<{
+    code: string;
+    kind: 'percent' | 'shipping';
+    value: number;
+    label: string;
+  } | null>(null);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+
   const [placing, setPlacing] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const shipping = subtotal === 0 || subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
-  const total = subtotal + shipping;
+  const baseShipping = subtotal === 0 || subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
+  const shipping = couponApplied?.kind === 'shipping' ? 0 : baseShipping;
+  const percentDiscount = couponApplied?.kind === 'percent' ? Math.round(subtotal * (couponApplied.value / 100)) : 0;
+  const total = Math.max(0, subtotal - percentDiscount) + shipping;
+
+  const applyCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!couponInput.trim()) return;
+    setValidatingCoupon(true);
+    setCouponError(null);
+    try {
+      const res = await api.validateCoupon(couponInput.trim());
+      if (res.valid && res.kind && res.value !== undefined) {
+        setCouponApplied({
+          code: res.code ?? couponInput.trim().toUpperCase(),
+          kind: res.kind as 'percent' | 'shipping',
+          value: res.value,
+          label: res.label ?? 'Discount Applied',
+        });
+        setCouponInput('');
+      } else {
+        setCouponError('Invalid or expired coupon code.');
+      }
+    } catch {
+      setCouponError('Could not validate coupon. Try again.');
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setCouponApplied(null);
+    setCouponError(null);
+  };
 
   const placeOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,12 +83,10 @@ export default function Checkout() {
     setPlacing(true);
     try {
       const header = await authHeader();
-      // In a real app, this would call Paystack or Stripe first to get a token,
-      // and then send the token to the backend.
       const res = await api.createOrder(
         {
           email,
-          couponCode: null,
+          couponCode: couponApplied?.code ?? null,
           shippingAddress: {
             firstName,
             lastName,
@@ -71,7 +112,7 @@ export default function Checkout() {
     } catch (err) {
       setError(
         err instanceof Error
-          ? `Could not place order: ${err.message}. Is the backend running?`
+          ? `Could not place order: ${err.message}.`
           : 'Could not place order.'
       );
     } finally {
@@ -266,11 +307,65 @@ export default function Checkout() {
               ))}
             </ul>
 
+            {/* Coupon Code Section */}
+            <div className="my-6 border-y border-bone/10 py-5">
+              {couponApplied ? (
+                <div className="flex items-center justify-between rounded-xl border border-gold/40 bg-gold/10 p-3.5">
+                  <div className="flex flex-col">
+                    <span className="font-mono text-xs font-bold text-gold uppercase tracking-wider">
+                      {couponApplied.code}
+                    </span>
+                    <span className="text-xs text-bone/60">{couponApplied.label}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeCoupon}
+                    className="text-xs text-bone/50 hover:text-bone underline"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                      placeholder="Discount code"
+                      className="flex-1 rounded-xl border border-bone/20 bg-ink-800/80 px-4 py-2.5 text-sm uppercase text-bone placeholder-bone/40 outline-none focus:border-gold"
+                    />
+                    <button
+                      type="button"
+                      onClick={applyCoupon}
+                      disabled={validatingCoupon || !couponInput.trim()}
+                      className="rounded-xl border border-bone/20 bg-ink-700 px-4 py-2.5 text-sm font-semibold text-bone hover:border-gold hover:text-gold transition disabled:opacity-40"
+                    >
+                      {validatingCoupon ? 'Checking...' : 'Apply'}
+                    </button>
+                  </div>
+                  {couponError && <p className="text-xs text-red-400">{couponError}</p>}
+                </div>
+              )}
+            </div>
+
             <dl className="space-y-3 text-sm">
               <div className="flex justify-between text-bone/65">
                 <dt>Subtotal</dt>
                 <dd>{formatPrice(subtotal)}</dd>
               </div>
+              {couponApplied && percentDiscount > 0 && (
+                <div className="flex justify-between text-gold">
+                  <dt>Discount ({couponApplied.value}%)</dt>
+                  <dd>-{formatPrice(percentDiscount)}</dd>
+                </div>
+              )}
+              {couponApplied && couponApplied.kind === 'shipping' && (
+                <div className="flex justify-between text-gold">
+                  <dt>Free Shipping Promo</dt>
+                  <dd>-{formatPrice(baseShipping)}</dd>
+                </div>
+              )}
               <div className="flex justify-between text-bone/65">
                 <dt>Shipping</dt>
                 <dd>{shipping === 0 ? 'Free' : formatPrice(shipping)}</dd>

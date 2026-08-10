@@ -15,10 +15,10 @@ export default function Home() {
   // Carousel: hero poster + new drops & model shots (using optimized WebP)
   const carouselSlides = [
     {
-      image: '/assets/Flyer_1-upd.webp',
-      name: 'Special Drop',
-      tagline: 'Kingdom Apparel & Heavyweight Essentials.',
-      ref: 'Levush — Ghana',
+      image: '/assets/hero-poster.webp',
+      name: 'The Core Collection',
+      tagline: 'Faith, Worn.',
+      ref: 'Levush Edition',
     },
     {
       image: '/assets/photo_2026-08-03_20-15-53.webp',

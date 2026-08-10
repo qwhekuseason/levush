@@ -17,6 +17,7 @@ export default function ProductDetail() {
 
   const [color, setColor] = useState<ColorwayName>(product?.defaultColor ?? 'black');
   const [size, setSize] = useState<string>('');
+  const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [sizeModalOpen, setSizeModalOpen] = useState(false);
 
@@ -35,7 +36,7 @@ export default function ProductDetail() {
 
   const handleAdd = () => {
     if (!size) return;
-    addItem(product, color, size, 1);
+    addItem(product, color, size, quantity);
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
   };
@@ -168,15 +169,43 @@ export default function ProductDetail() {
             </div>
           </div>
 
+          {/* Quantity */}
+          <div className="mt-7">
+            <p className="mb-3 text-sm font-medium text-bone">Quantity</p>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center rounded-lg border border-bone/20 bg-ink-800/80">
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  className="flex h-11 w-11 items-center justify-center text-bone/70 transition hover:text-bone disabled:opacity-30"
+                  disabled={quantity <= 1}
+                >
+                  -
+                </button>
+                <span className="w-10 text-center font-mono text-sm font-bold text-bone">
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => Math.min(10, q + 1))}
+                  className="flex h-11 w-11 items-center justify-center text-bone/70 transition hover:text-bone"
+                >
+                  +
+                </button>
+              </div>
+              <span className="text-xs text-bone/40">Max 10 per order</span>
+            </div>
+          </div>
+
           {/* Add to cart */}
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <button onClick={handleAdd} disabled={!size} className="btn-primary flex-1">
               {added ? (
                 <>
-                  <CheckIcon width={18} height={18} /> Added to bag
+                  <CheckIcon width={18} height={18} /> Added {quantity} to bag
                 </>
               ) : size ? (
-                'Add to Bag'
+                `Add ${quantity > 1 ? `(${quantity}) ` : ''}to Bag`
               ) : (
                 'Select a size'
               )}

@@ -51,3 +51,6 @@ formatted_products.json
 full_catalog.json
 parsed_new_products.json
 assets/
+
+.vercel
+.env*

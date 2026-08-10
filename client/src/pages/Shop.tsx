@@ -36,6 +36,9 @@ export default function Shop() {
   const [params, setParams] = useSearchParams();
   const active = params.get('collection') ?? 'All';
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Multi-select states
   const [selectedColors, setSelectedColors] = useState<Set<string>>(new Set());
   const [selectedSizes, setSelectedSizes] = useState<Set<string>>(new Set());
@@ -89,6 +92,19 @@ export default function Shop() {
         ? products.filter((p) => getDiscountInfo(p).hasDiscount)
         : products.filter((p) => p.collection === active);
 
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.tagline?.toLowerCase().includes(q) ||
+          p.description?.toLowerCase().includes(q) ||
+          p.verse?.text?.toLowerCase().includes(q) ||
+          p.verse?.reference?.toLowerCase().includes(q) ||
+          p.collection?.toLowerCase().includes(q)
+      );
+    }
+
     if (selectedColors.size > 0) {
       list = list.filter((p) => [...selectedColors].some((key) => productMatchesColor(p, key)));
     }
@@ -100,17 +116,18 @@ export default function Shop() {
     }
 
     return list;
-  }, [active, selectedColors, selectedSizes, products]);
+  }, [active, searchQuery, selectedColors, selectedSizes, products]);
 
   const saleCount = useMemo(
     () => products.filter((p) => getDiscountInfo(p).hasDiscount).length,
     [products]
   );
 
-  const isFiltered = selectedColors.size > 0 || selectedSizes.size > 0 || active !== 'All';
+  const isFiltered = selectedColors.size > 0 || selectedSizes.size > 0 || active !== 'All' || Boolean(searchQuery);
 
   const resetFilters = () => {
     setCollection('All');
+    setSearchQuery('');
     setSelectedColors(new Set());
     setSelectedSizes(new Set());
   };
@@ -120,12 +137,41 @@ export default function Shop() {
 
   return (
     <div className="container-site py-12 md:py-16">
-      <header className="mb-10 max-w-2xl">
-        <p className="eyebrow mb-3">The Shop</p>
-        <h1 className="heading-serif text-3xl text-bone sm:text-5xl">Every piece, a word.</h1>
-        <p className="mt-4 text-bone/55">
-          Heavyweight scripture tees in Magnolia and Raisin Black. Choose your statement.
-        </p>
+      <header className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+        <div className="max-w-2xl">
+          <p className="eyebrow mb-3">The Shop</p>
+          <h1 className="heading-serif text-3xl text-bone sm:text-5xl">Every piece, a word.</h1>
+          <p className="mt-4 text-bone/55">
+            Heavyweight scripture streetwear in premium colorways. Choose your statement.
+          </p>
+        </div>
+
+        {/* Search Input Bar */}
+        <div className="relative w-full max-w-md">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search designs, verses, or drops..."
+            className="w-full rounded-full border border-bone/20 bg-ink-800/80 px-5 py-3 pl-11 text-sm text-bone placeholder-bone/40 outline-none transition focus:border-gold focus:ring-1 focus:ring-gold"
+          />
+          <svg
+            className="absolute left-4 top-3.5 h-4 w-4 text-bone/40"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-4 top-3 text-xs text-bone/40 hover:text-bone"
+            >
+              Clear
+            </button>
+          )}
+        </div>
       </header>
 
       <div className="mb-8 flex flex-wrap items-start justify-between gap-6 border-b border-bone/10 pb-6">
