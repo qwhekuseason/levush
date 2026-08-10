@@ -74,15 +74,16 @@ export default function AdminProducts() {
     setUploadingIndex(i);
     setError(null);
     try {
-      if (storage) {
-        // Production: compress on-the-fly and upload to Firebase Storage
-        const blob = await compressImageToWebp(file, { maxWidth: 1400, quality: 0.85 });
+      try {
+        // If Firebase Storage is provisioned, upload to Cloud Storage
+        const blob = await compressImageToWebp(file, { maxWidth: 1200, quality: 0.85 });
         const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9-_]/g, '_');
         const path = `products/${Date.now()}_${cleanName}.webp`;
         const url = await uploadImageToStorage(blob, path);
         setColorway(i, { image: url });
-      } else {
-        // Demo / local mode: compress to ultra-light WebP base64 DataURL (<50KB)
+      } catch (storageErr) {
+        // Fallback: compress to ultra-light WebP base64 DataURL (<40KB) and save directly in Firestore
+        console.log('[images] Storage upload bypassed, encoding WebP directly to Firestore:', storageErr);
         const dataUrl = await compressImageToDataUrl(file, { maxWidth: 1000, quality: 0.8 });
         setColorway(i, { image: dataUrl });
       }

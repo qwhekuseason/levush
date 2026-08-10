@@ -34,7 +34,7 @@ export interface Product {
 const COLLECTION = 'products';
 
 // Seed catalogue (also the source of truth for prices when validating orders).
-const seed: Product[] = [
+export const seed: Product[] = [
   {
     id: 'created-purpose',
     slug: 'created-with-a-purpose',

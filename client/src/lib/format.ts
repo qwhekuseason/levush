@@ -16,7 +16,7 @@ export function formatPrice(amount: number): string {
 /** Convert local asset paths to optimized .webp equivalent */
 export function toWebp(path: string | undefined | null): string {
   if (!path) return '';
-  if (path.startsWith('http') || path.endsWith('.svg')) return path;
+  if (path.startsWith('http') || path.startsWith('data:') || path.endsWith('.svg')) return path;
   return path.replace(/\.(png|jpg|jpeg)$/i, '.webp');
 }
 
