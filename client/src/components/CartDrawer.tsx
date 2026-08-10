@@ -46,10 +46,14 @@ export default function CartDrawer() {
               {items.map((item) => (
                 <li key={item.id} className="flex gap-4 py-5">
                   <img
-                    src={toWebp(item.image)}
+                    src={toWebp(item.image) || '/assets/hero-poster.webp'}
                     alt={item.name}
                     loading="lazy"
                     decoding="async"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = '/assets/hero-poster.webp';
+                    }}
                     className="h-24 w-20 rounded-lg object-cover"
                   />
                   <div className="flex flex-1 flex-col">

@@ -32,10 +32,14 @@ export default function Cart() {
           {items.map((item) => (
             <li key={item.id} className="flex gap-4 sm:gap-5 py-6">
               <img
-                src={toWebp(item.image)}
+                src={toWebp(item.image) || '/assets/hero-poster.webp'}
                 alt={item.name}
                 loading="lazy"
                 decoding="async"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = '/assets/hero-poster.webp';
+                }}
                 className="h-28 sm:h-32 w-24 sm:w-28 rounded-xl object-cover"
               />
               <div className="flex flex-1 flex-col">

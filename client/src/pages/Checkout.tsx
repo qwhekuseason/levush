@@ -288,10 +288,14 @@ export default function Checkout() {
                 <li key={item.id} className="flex gap-4 py-4">
                   <div className="relative">
                     <img
-                      src={toWebp(item.image)}
+                      src={toWebp(item.image) || '/assets/hero-poster.webp'}
                       alt={item.name}
                       loading="lazy"
                       decoding="async"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = '/assets/hero-poster.webp';
+                      }}
                       className="h-16 w-16 rounded-md object-cover border border-bone/10"
                     />
                     <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-bone text-[10px] font-bold text-ink">
