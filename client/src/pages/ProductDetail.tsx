@@ -58,6 +58,12 @@ export default function ProductDetail() {
               alt={`${product.name} — ${color}`}
               fetchPriority="high"
               decoding="async"
+              onError={(e) => {
+                const match = product.colorways.find((c) => c.name === color);
+                if (match?.image && !e.currentTarget.src.endsWith(match.image)) {
+                  e.currentTarget.src = match.image;
+                }
+              }}
               className="h-full w-full object-cover"
             />
           </div>
@@ -77,6 +83,11 @@ export default function ProductDetail() {
                     alt={c.label}
                     loading="lazy"
                     decoding="async"
+                    onError={(e) => {
+                      if (c.image && !e.currentTarget.src.endsWith(c.image)) {
+                        e.currentTarget.src = c.image;
+                      }
+                    }}
                     className="h-full w-full object-cover"
                   />
                 </button>

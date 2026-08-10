@@ -43,6 +43,11 @@ export default function ProductCard({ product, preferredColor }: { product: Prod
             alt={`${product.name} - ${activeColorway.label}`}
             loading="lazy"
             decoding="async"
+            onError={(e) => {
+              if (activeColorway.image && !e.currentTarget.src.endsWith(activeColorway.image)) {
+                e.currentTarget.src = activeColorway.image;
+              }
+            }}
             className="h-full w-full object-cover transition-all duration-500 group-hover:scale-[1.04]"
           />
 
@@ -53,6 +58,11 @@ export default function ProductCard({ product, preferredColor }: { product: Prod
               aria-hidden
               loading="lazy"
               decoding="async"
+              onError={(e) => {
+                if (altColorway?.image && !e.currentTarget.src.endsWith(altColorway.image)) {
+                  e.currentTarget.src = altColorway.image;
+                }
+              }}
               className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
             />
           )}
