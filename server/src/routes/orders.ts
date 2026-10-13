@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requireAdmin, resolveCaller } from '../lib/auth.js';
+import { rateLimit } from '../lib/rateLimit.js';
 import { getProductsByIds, isSoldOut } from '../store/productStore.js';
 import { getSettings, shippingFor } from '../store/settingsStore.js';
 import {
@@ -46,7 +47,9 @@ router.post('/', async (req, res) => {
   for (const raw of items as OrderItem[]) {
     const product = catalogue.get(String(raw?.productId));
     if (!product || product.isHidden) {
-      return res.status(400).json({ error: `“${String(raw?.name ?? raw?.productId)}” is no longer available.` });
+      // Name comes from the catalogue when we have it; never echo client-sent text.
+      const label = product?.name ? `“${product.name}”` : 'One of the items in your bag';
+      return res.status(400).json({ error: `${label} is no longer available.` });
     }
     const quantity = Math.floor(Number(raw.quantity) || 0);
     if (quantity < 1 || quantity > settings.maxQtyPerItem) {
@@ -114,22 +117,14 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Basic brake on guessing order numbers: per-IP attempts per window. (Per
-// serverless instance, so it's a speed bump, not a wall — the phone check is
-// the real protection.)
-const trackAttempts = new Map<string, { n: number; reset: number }>();
-const TRACK_LIMIT = 20;
-const TRACK_WINDOW_MS = 10 * 60_000;
+// Brake on guessing order numbers (the phone check is the real protection).
+const trackLimit = rateLimit({
+  max: 20,
+  windowMs: 10 * 60_000,
+  message: 'Too many attempts. Please wait a few minutes and try again.',
+});
 
-router.post('/track', async (req, res) => {
-  const ip = String(req.headers['x-forwarded-for'] ?? req.socket.remoteAddress ?? '').split(',')[0].trim();
-  const now = Date.now();
-  const entry = trackAttempts.get(ip);
-  if (entry && entry.reset > now && entry.n >= TRACK_LIMIT) {
-    return res.status(429).json({ error: 'Too many attempts. Please wait a few minutes and try again.' });
-  }
-  trackAttempts.set(ip, entry && entry.reset > now ? { n: entry.n + 1, reset: entry.reset } : { n: 1, reset: now + TRACK_WINDOW_MS });
-
+router.post('/track', trackLimit, async (req, res) => {
   const id = String(req.body?.id ?? '').trim();
   const phone = String(req.body?.phone ?? '');
   if (!/^LV-[A-Z0-9]{8}$/i.test(id) || !phone.trim()) {

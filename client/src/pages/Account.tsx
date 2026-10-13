@@ -5,8 +5,10 @@ import { api } from '@/lib/api';
 import { classNames, formatPrice } from '@/lib/format';
 import type { Order } from '@/types';
 import { motion } from 'framer-motion';
+import { usePageTitle } from '@/lib/usePageTitle';
 
 export default function Account() {
+  usePageTitle('Your Account');
   const { user, role, isAdmin, loading, logout, authHeader } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);

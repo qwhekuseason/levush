@@ -4,8 +4,10 @@ import { useAuth } from '@/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { updatePassword, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { usePageTitle } from '@/lib/usePageTitle';
 
 export default function Settings() {
+  usePageTitle('Account Settings');
   const { user, enabled, updateProfileInfo, deleteAccount } = useAuth();
   const navigate = useNavigate();
 

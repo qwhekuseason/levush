@@ -128,6 +128,17 @@ export interface Order {
   createdAt: number;
 }
 
+/** A message sent from the Contact page. */
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+  read: boolean;
+  createdAt: number;
+}
+
 /** The customer-safe view returned by order tracking. */
 export interface TrackedOrder {
   id: string;

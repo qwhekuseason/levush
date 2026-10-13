@@ -27,6 +27,8 @@ interface CartContextValue {
   addItem: (product: Product, color: ColorwayName, size: string, quantity?: number) => void;
   removeItem: (lineId: string) => void;
   setQuantity: (lineId: string, quantity: number) => void;
+  /** +1 / -1 from the current value (safe for rapid taps); 0 removes the line */
+  changeQuantity: (lineId: string, delta: number) => void;
   clear: () => void;
 }
 
@@ -121,6 +123,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
   }, [maxQty]);
 
+  const changeQuantity = useCallback((lineId: string, delta: number) => {
+    // Functional update: each tap builds on the latest quantity, not a stale render.
+    setItems((prev) =>
+      prev.flatMap((i) => {
+        if (i.id !== lineId) return [i];
+        const q = Math.min(maxQty, i.quantity + delta);
+        return q <= 0 ? [] : [{ ...i, quantity: q }];
+      })
+    );
+  }, [maxQty]);
+
   const clear = useCallback(() => setItems([]), []);
 
   const value = useMemo<CartContextValue>(() => {
@@ -138,9 +151,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       addItem,
       removeItem,
       setQuantity,
+      changeQuantity,
       clear,
     };
-  }, [items, isOpen, maxQty, addItem, removeItem, setQuantity, clear]);
+  }, [items, isOpen, maxQty, addItem, removeItem, setQuantity, changeQuantity, clear]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

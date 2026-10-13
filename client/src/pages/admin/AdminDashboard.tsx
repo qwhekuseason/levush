@@ -44,7 +44,8 @@ function RevenueChart({ orders }: { orders: Order[] }) {
       map[d] = 0;
     }
     for (const o of orders) {
-      if (o.status === 'cancelled') continue;
+      // Money counts once it has actually arrived (MoMo confirmed by the admin).
+      if (o.status !== 'paid' && o.status !== 'shipped') continue;
       const d = new Date(o.createdAt).toISOString().slice(0, 10);
       if (d in map) map[d] += o.total;
     }
@@ -122,9 +123,13 @@ export default function AdminDashboard() {
   }, [authHeader]);
 
   const activeOrders = orders.filter((o) => o.status !== 'cancelled');
-  const revenue = activeOrders.reduce((n, o) => n + o.total, 0);
-  const aov = activeOrders.length ? revenue / activeOrders.length : 0;
-  const pending = orders.filter((o) => o.status === 'received').length;
+  // Revenue = payments confirmed (Paid or Shipped); unpaid MoMo orders are tracked separately.
+  const paidOrders = orders.filter((o) => o.status === 'paid' || o.status === 'shipped');
+  const revenue = paidOrders.reduce((n, o) => n + o.total, 0);
+  const aov = paidOrders.length ? revenue / paidOrders.length : 0;
+  const awaiting = orders.filter((o) => o.status === 'received');
+  const pending = awaiting.length;
+  const awaitingTotal = awaiting.reduce((n, o) => n + o.total, 0);
   const shipped = orders.filter((o) => o.status === 'shipped').length;
 
   // Best selling products by revenue
@@ -145,14 +150,14 @@ export default function AdminDashboard() {
     const now = Date.now();
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(now - (6 - i) * 86_400_000).toISOString().slice(0, 10);
-      return activeOrders.filter((o) => new Date(o.createdAt).toISOString().slice(0, 10) === d).reduce((s, o) => s + o.total, 0);
+      return paidOrders.filter((o) => new Date(o.createdAt).toISOString().slice(0, 10) === d).reduce((s, o) => s + o.total, 0);
     });
-  }, [activeOrders]);
+  }, [paidOrders]);
 
   const stats = [
-    { label: 'Total Revenue', value: loaded ? formatPrice(revenue) : '…', sub: 'excl. cancelled', to: '/admin/orders', spark: sparkData },
-    { label: 'Total Orders', value: loaded ? orders.length : '…', sub: `${pending} awaiting fulfilment`, to: '/admin/orders', spark: null },
-    { label: 'Avg Order Value', value: loaded ? formatPrice(aov) : '…', sub: 'active orders only', to: '/admin/orders', spark: null },
+    { label: 'Revenue (paid)', value: loaded ? formatPrice(revenue) : '…', sub: loaded ? `${formatPrice(awaitingTotal)} awaiting payment` : '', to: '/admin/orders', spark: sparkData },
+    { label: 'Total Orders', value: loaded ? orders.length : '…', sub: `${pending} awaiting payment`, to: '/admin/orders', spark: null },
+    { label: 'Avg Order Value', value: loaded ? formatPrice(aov) : '…', sub: 'paid orders only', to: '/admin/orders', spark: null },
     { label: 'Products', value: products.length, sub: `${shipped} orders shipped`, to: '/admin/products', spark: null },
   ];
 
@@ -176,7 +181,7 @@ export default function AdminDashboard() {
 
       {/* Revenue chart */}
       <div className="card-surface p-6">
-        <h2 className="heading-serif mb-5 text-xl text-bone">Revenue — last 14 days</h2>
+        <h2 className="heading-serif mb-5 text-xl text-bone">Paid revenue — last 14 days</h2>
         {!loaded ? (
           <p className="text-sm text-bone/45">Loading…</p>
         ) : (
@@ -232,7 +237,7 @@ export default function AdminDashboard() {
                     o.status === 'paid' ? 'bg-royal/30 text-bone' :
                     o.status === 'cancelled' ? 'bg-red-500/15 text-red-400' :
                     'bg-bone/10 text-bone/70'
-                  }`}>{o.status}</span>
+                  }`}>{o.status === 'received' ? 'Awaiting payment' : o.status}</span>
                   <span className="shrink-0 font-medium text-gold">{formatPrice(o.total)}</span>
                 </li>
               ))}

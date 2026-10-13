@@ -6,6 +6,7 @@ import ProductCard from '@/components/ProductCard';
 import Reveal from '@/components/Reveal';
 import { classNames, getDiscountInfo } from '@/lib/format';
 import { sizeAvailableAnyColor } from '@/lib/stock';
+import { usePageTitle } from '@/lib/usePageTitle';
 
 // Fixed colour palette for the shop filter
 const COLOUR_PALETTE = [
@@ -33,6 +34,7 @@ function productMatchesColor(
 }
 
 export default function Shop() {
+  usePageTitle('Shop');
   const { products } = useCatalog();
   const [params, setParams] = useSearchParams();
   const active = params.get('collection') ?? 'All';

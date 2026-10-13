@@ -6,6 +6,7 @@ import { getRecentOrders, type RecentOrder } from '@/lib/recentOrders';
 import { whatsappLink } from '@/lib/whatsapp';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
 import type { OrderStatus, TrackedOrder } from '@/types';
+import { usePageTitle } from '@/lib/usePageTitle';
 
 const STEPS: Array<{ status: OrderStatus; title: string; hint: string }> = [
   { status: 'received', title: 'Order received', hint: 'Waiting for your Mobile Money payment.' },
@@ -61,6 +62,7 @@ function Timeline({ order }: { order: TrackedOrder }) {
 }
 
 export default function TrackOrder() {
+  usePageTitle('Track Your Order');
   const { settings } = useStoreSettings();
   // Arriving from the order confirmation screen pre-fills via router state.
   const prefill = (useLocation().state ?? {}) as { id?: string; phone?: string };

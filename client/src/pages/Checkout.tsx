@@ -10,6 +10,7 @@ import { ArrowRight } from '@/components/icons';
 import OrderPayment, { LAST_ORDER_KEY, type PlacedOrder } from '@/components/OrderPayment';
 import { rememberOrder } from '@/lib/recentOrders';
 import type { PublicCoupon } from '@/types';
+import { usePageTitle } from '@/lib/usePageTitle';
 
 /** Mirror of the server's coupon maths, for the live order summary. */
 function couponDiscount(c: PublicCoupon, subtotal: number): number {
@@ -30,6 +31,7 @@ function describeOffer(c: PublicCoupon): string {
 }
 
 export default function Checkout() {
+  usePageTitle('Checkout');
   const { items, subtotal, clear, hasUnavailable, removeItem } = useCart();
   const { user, authHeader } = useAuth();
   const { settings, shippingFor } = useStoreSettings();

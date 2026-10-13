@@ -1,15 +1,18 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { classNames } from '@/lib/format';
+import { usePageTitle } from '@/lib/usePageTitle';
 
 const tabs = [
   { to: '/admin', label: 'Dashboard', end: true },
   { to: '/admin/products', label: 'Products' },
   { to: '/admin/orders', label: 'Orders' },
+  { to: '/admin/messages', label: 'Messages' },
   { to: '/admin/coupons', label: 'Coupons' },
   { to: '/admin/settings', label: 'Store Settings' },
 ];
 
 export default function AdminLayout() {
+  usePageTitle('Admin');
   return (
     <div className="container-site py-12">
       <p className="eyebrow mb-2">Admin</p>

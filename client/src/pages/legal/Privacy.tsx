@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
+import { usePageTitle } from '@/lib/usePageTitle';
 
 export default function Privacy() {
+  usePageTitle('Privacy Policy');
   return (
     <div className="container-site py-16 max-w-3xl">
       <nav className="mb-8 text-sm text-bone/45">

@@ -4,7 +4,7 @@ import { CloseIcon, MinusIcon, PlusIcon } from '@/components/icons';
 import { formatPrice, toWebp } from '@/lib/format';
 
 export default function CartDrawer() {
-  const { items, isOpen, closeCart, subtotal, setQuantity, removeItem, maxQty, count } = useCart();
+  const { items, isOpen, closeCart, subtotal, changeQuantity, removeItem, maxQty, count } = useCart();
 
   return (
     <>
@@ -77,12 +77,12 @@ export default function CartDrawer() {
                       </div>
                     </div>
                     <div className="mt-auto flex items-center justify-between">
-                      <div className="flex items-center gap-3 rounded-full border border-bone/15 px-2 py-1">
-                        <button onClick={() => setQuantity(item.id, item.quantity - 1)} className="text-bone/70 hover:text-bone" aria-label="Decrease quantity">
+                      <div className="flex items-center gap-1 rounded-full border border-bone/15 px-1 py-0.5">
+                        <button onClick={() => changeQuantity(item.id, -1)} className="grid h-8 w-8 place-items-center rounded-full text-bone/70 hover:bg-bone/5 hover:text-bone" aria-label="Decrease quantity">
                           <MinusIcon width={15} height={15} />
                         </button>
                         <span className="w-5 text-center text-sm">{item.quantity}</span>
-                        <button onClick={() => setQuantity(item.id, item.quantity + 1)} disabled={item.quantity >= maxQty} className="text-bone/70 hover:text-bone disabled:opacity-30 disabled:cursor-not-allowed" aria-label="Increase quantity">
+                        <button onClick={() => changeQuantity(item.id, 1)} disabled={item.quantity >= maxQty} className="grid h-8 w-8 place-items-center rounded-full text-bone/70 hover:bg-bone/5 hover:text-bone disabled:opacity-30 disabled:cursor-not-allowed" aria-label="Increase quantity">
                           <PlusIcon width={15} height={15} />
                         </button>
                       </div>

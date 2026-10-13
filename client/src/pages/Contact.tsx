@@ -1,16 +1,27 @@
 import { useState, type FormEvent } from 'react';
 import Reveal from '@/components/Reveal';
+import { api } from '@/lib/api';
+import { usePageTitle } from '@/lib/usePageTitle';
 
 export default function Contact() {
+  usePageTitle('Contact Us');
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
+  const [error, setError] = useState<string | null>(null);
+  const [form, setForm] = useState({ name: '', email: '', phone: '', message: '', website: '' });
+  const set = (k: keyof typeof form) => (e: { target: { value: string } }) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
+    setError(null);
     setStatus('submitting');
-    // Simulate network request
-    setTimeout(() => {
+    try {
+      await api.sendMessage(form);
       setStatus('success');
-    }, 1000);
+      setForm({ name: '', email: '', phone: '', message: '', website: '' });
+    } catch (err) {
+      setStatus('idle');
+      setError(err instanceof Error ? err.message : 'Could not send your message. Please try again.');
+    }
   };
 
   return (
@@ -35,25 +46,42 @@ export default function Contact() {
           ) : (
             <form onSubmit={submit} className="space-y-4">
               <div>
-                <label className="mb-2 block text-sm font-medium text-bone">Name</label>
-                <input required placeholder="Your name" className="field" />
+                <label htmlFor="contact-name" className="mb-2 block text-sm font-medium text-bone">Name</label>
+                <input id="contact-name" required autoComplete="name" placeholder="Your name" className="field" value={form.name} onChange={set('name')} maxLength={100} />
               </div>
               <div>
-                <label className="mb-2 block text-sm font-medium text-bone">Email</label>
-                <input required type="email" placeholder="you@email.com" className="field" />
+                <label htmlFor="contact-email" className="mb-2 block text-sm font-medium text-bone">Email</label>
+                <input id="contact-email" required type="email" autoComplete="email" placeholder="you@email.com" className="field" value={form.email} onChange={set('email')} maxLength={200} />
               </div>
               <div>
-                <label className="mb-2 block text-sm font-medium text-bone">Message</label>
+                <label htmlFor="contact-phone" className="mb-2 block text-sm font-medium text-bone">
+                  Phone / WhatsApp <span className="font-normal text-bone/45">(optional)</span>
+                </label>
+                <input id="contact-phone" type="tel" autoComplete="tel" placeholder="024 123 4567" className="field" value={form.phone} onChange={set('phone')} maxLength={30} />
+              </div>
+              <div>
+                <label htmlFor="contact-message" className="mb-2 block text-sm font-medium text-bone">Message</label>
                 <textarea
+                  id="contact-message"
                   required
                   placeholder="How can we help?"
                   rows={5}
+                  maxLength={3000}
                   className="field resize-none"
+                  value={form.message}
+                  onChange={set('message')}
                 />
               </div>
+              {/* Honeypot: hidden from people, tempting to spam bots. */}
+              <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+                <label htmlFor="contact-website">Website</label>
+                <input id="contact-website" tabIndex={-1} autoComplete="off" value={form.website} onChange={set('website')} />
+              </div>
+              {error && <p className="rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-500" role="alert">{error}</p>}
               <button type="submit" disabled={status === 'submitting'} className="btn-primary w-full">
                 {status === 'submitting' ? 'Sending…' : 'Send Message'}
               </button>
+              <p className="text-center text-xs text-bone/45">Need a faster reply? Message us on WhatsApp (numbers on the right).</p>
             </form>
           )}
         </Reveal>

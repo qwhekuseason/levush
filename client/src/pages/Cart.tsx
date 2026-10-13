@@ -4,9 +4,11 @@ import { useAuth } from '@/context/AuthContext';
 import { MinusIcon, PlusIcon } from '@/components/icons';
 import { formatPrice, toWebp } from '@/lib/format';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
+import { usePageTitle } from '@/lib/usePageTitle';
 
 export default function Cart() {
-  const { items, subtotal, setQuantity, removeItem, maxQty, hasUnavailable } = useCart();
+  usePageTitle('Your Bag');
+  const { items, subtotal, changeQuantity, removeItem, maxQty, hasUnavailable } = useCart();
   const { user } = useAuth();
   const { settings, shippingFor } = useStoreSettings();
   const shipping = shippingFor(subtotal);
@@ -64,12 +66,12 @@ export default function Cart() {
                   </div>
                 </div>
                 <div className="mt-auto flex items-center justify-between">
-                  <div className="flex items-center gap-3 rounded-full border border-bone/15 px-2 py-1">
-                    <button onClick={() => setQuantity(item.id, item.quantity - 1)} aria-label="Decrease" className="text-bone/70 hover:text-bone">
+                  <div className="flex items-center gap-1 rounded-full border border-bone/15 px-1 py-0.5">
+                    <button onClick={() => changeQuantity(item.id, -1)} aria-label="Decrease" className="grid h-8 w-8 place-items-center rounded-full text-bone/70 hover:bg-bone/5 hover:text-bone">
                       <MinusIcon width={15} height={15} />
                     </button>
                     <span className="w-5 text-center text-sm">{item.quantity}</span>
-                    <button onClick={() => setQuantity(item.id, item.quantity + 1)} disabled={item.quantity >= maxQty} aria-label="Increase" className="text-bone/70 hover:text-bone disabled:opacity-30 disabled:cursor-not-allowed">
+                    <button onClick={() => changeQuantity(item.id, 1)} disabled={item.quantity >= maxQty} aria-label="Increase" className="grid h-8 w-8 place-items-center rounded-full text-bone/70 hover:bg-bone/5 hover:text-bone disabled:opacity-30 disabled:cursor-not-allowed">
                       <PlusIcon width={15} height={15} />
                     </button>
                   </div>

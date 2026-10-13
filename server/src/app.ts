@@ -8,6 +8,8 @@ import productsRouter from './routes/products.js';
 import ordersRouter from './routes/orders.js';
 import couponsRouter from './routes/coupons.js';
 import settingsRouter from './routes/settings.js';
+import messagesRouter from './routes/messages.js';
+import seoRouter from './routes/seo.js';
 
 const app = express();
 
@@ -23,6 +25,10 @@ app.use('/api/products', productsRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/coupons', couponsRouter);
 app.use('/api/settings', settingsRouter);
+app.use('/api/messages', messagesRouter);
+app.use('/api', seoRouter);
+// Link-preview bots and /sitemap.xml are rewritten here by vercel.json with their original paths.
+app.use(seoRouter);
 
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found.' }));
 

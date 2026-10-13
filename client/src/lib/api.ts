@@ -8,6 +8,7 @@ import type {
   PublicCoupon,
   StoreSettings,
   TrackedOrder,
+  ContactMessage,
 } from '@/types';
 
 const BASE = '/api';
@@ -98,6 +99,15 @@ export const api = {
       {},
       auth
     ),
+
+  // Contact messages
+  sendMessage: (data: { name: string; email: string; phone?: string; message: string; website?: string }) =>
+    request<{ ok: true }>('/messages', { method: 'POST', body: JSON.stringify(data) }),
+  listMessages: (auth: string) => request<ContactMessage[]>('/messages', {}, auth),
+  markMessage: (id: string, read: boolean, auth: string) =>
+    request<ContactMessage>(`/messages/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ read }) }, auth),
+  deleteMessage: (id: string, auth: string) =>
+    request<{ deleted: boolean }>(`/messages/${encodeURIComponent(id)}`, { method: 'DELETE' }, auth),
 
   // Store settings
   getSettings: (fresh = false) => request<StoreSettings>(fresh ? `/settings?fresh=${Date.now()}` : '/settings'),

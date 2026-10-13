@@ -3,6 +3,7 @@ import { useCatalog } from '@/context/CatalogContext';
 import Reveal from '@/components/Reveal';
 import { ArrowRight } from '@/components/icons';
 import { productImage } from '@/lib/format';
+import { usePageTitle } from '@/lib/usePageTitle';
 
 const values = [
   {
@@ -20,6 +21,7 @@ const values = [
 ];
 
 export default function About() {
+  usePageTitle('Our Story');
   const { products } = useCatalog();
   const feature = products.find((p) => p.id === 'created-purpose') ?? products[0];
   return (

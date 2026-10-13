@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { formatPrice } from '@/lib/format';
+import { usePageTitle } from '@/lib/usePageTitle';
 
 export default function ShippingReturns() {
+  usePageTitle('Shipping & Returns');
   const { settings } = useStoreSettings();
   return (
     <div className="container-site py-16 max-w-3xl">

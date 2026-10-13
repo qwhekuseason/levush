@@ -2,8 +2,10 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { motion } from 'framer-motion';
+import { usePageTitle } from '@/lib/usePageTitle';
 
 export default function SignIn() {
+  usePageTitle('Sign In');
   const { user, isAdmin, roleLoading, signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -51,10 +53,12 @@ export default function SignIn() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-bone/55 mb-1.5">
+              <label htmlFor="signin-email-address" className="block text-xs font-semibold uppercase tracking-wider text-bone/55 mb-1.5">
                 Email Address
               </label>
               <input
+                id="signin-email-address"
+                autoComplete="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -65,10 +69,12 @@ export default function SignIn() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-bone/55 mb-1.5">
+              <label htmlFor="signin-password" className="block text-xs font-semibold uppercase tracking-wider text-bone/55 mb-1.5">
                 Password
               </label>
               <input
+                id="signin-password"
+                autoComplete="current-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

@@ -9,6 +9,7 @@ import { CheckIcon } from '@/components/icons';
 import { classNames, formatPrice, getDiscountInfo, productImage, toWebp } from '@/lib/format';
 import type { ColorwayName } from '@/types';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
+import { usePageTitle } from '@/lib/usePageTitle';
 import { colorSoldOut, isSoldOut, productSoldOut } from '@/lib/stock';
 
 // Keyed by slug so moving between products (e.g. via "You may also like")
@@ -21,6 +22,7 @@ export default function ProductDetailRoute() {
 function ProductDetail({ slug }: { slug?: string }) {
   const { products, getProduct } = useCatalog();
   const product = slug ? getProduct(slug) : undefined;
+  usePageTitle(product ? product.name : 'Piece not found');
   const { addItem } = useCart();
   const { settings } = useStoreSettings();
   const maxQty = settings.maxQtyPerItem;

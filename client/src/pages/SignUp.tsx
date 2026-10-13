@@ -2,8 +2,10 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { motion } from 'framer-motion';
+import { usePageTitle } from '@/lib/usePageTitle';
 
 export default function SignUp() {
+  usePageTitle('Create Account');
   const { user, signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState('');
@@ -53,10 +55,12 @@ export default function SignUp() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-bone/55 mb-1.5">
+              <label htmlFor="signup-full-name" className="block text-xs font-semibold uppercase tracking-wider text-bone/55 mb-1.5">
                 Full Name
               </label>
               <input
+                id="signup-full-name"
+                autoComplete="name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -67,10 +71,12 @@ export default function SignUp() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-bone/55 mb-1.5">
+              <label htmlFor="signup-email-address" className="block text-xs font-semibold uppercase tracking-wider text-bone/55 mb-1.5">
                 Email Address
               </label>
               <input
+                id="signup-email-address"
+                autoComplete="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -81,10 +87,12 @@ export default function SignUp() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-bone/55 mb-1.5">
+              <label htmlFor="signup-password" className="block text-xs font-semibold uppercase tracking-wider text-bone/55 mb-1.5">
                 Password
               </label>
               <input
+                id="signup-password"
+                autoComplete="new-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /account
+Disallow: /settings
+Disallow: /checkout
+Disallow: /cart
+
+Sitemap: https://levush.vercel.app/sitemap.xml

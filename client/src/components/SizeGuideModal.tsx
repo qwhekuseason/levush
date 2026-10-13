@@ -21,6 +21,14 @@ export default function SizeGuideModal({ isOpen, onClose, category = 't-shirt' }
     };
   }, [isOpen]);
 
+  // Escape closes the guide, as with any dialog.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   // Placeholder data for size guide
@@ -58,11 +66,11 @@ export default function SizeGuideModal({ isOpen, onClose, category = 't-shirt' }
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
       <div className="absolute inset-0 bg-ink/80 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative w-full max-w-lg rounded-2xl bg-ink-800 p-6 shadow-2xl ring-1 ring-bone/10 sm:p-8 animate-fade-up">
+      <div role="dialog" aria-modal="true" aria-label="Size guide" className="relative w-full max-w-lg rounded-2xl bg-ink-800 p-6 shadow-2xl ring-1 ring-bone/10 sm:p-8 animate-fade-up">
         <button
           onClick={onClose}
           className="absolute right-4 top-4 p-2 text-bone/50 hover:text-bone transition-colors"
-          aria-label="Close"
+          aria-label="Close size guide"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M18 6L6 18M6 6l12 12" />
