@@ -77,8 +77,8 @@ export function couponStatus(c: Coupon, now = Date.now()): CouponStatus {
 }
 
 export type CouponResult =
-  | { ok: true; discount: number; freeShipping: boolean }
-  | { ok: false; reason: string };
+  | { ok: true; discount: number; freeShipping: boolean; reason?: undefined }
+  | { ok: false; reason: string; discount?: undefined; freeShipping?: undefined };
 
 const cedis = (n: number) => `GH₵${n.toLocaleString('en-GH')}`;
 
