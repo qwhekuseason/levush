@@ -6,20 +6,41 @@ import ProductCard from '@/components/ProductCard';
 import Reveal from '@/components/Reveal';
 import SizeGuideModal from '@/components/SizeGuideModal';
 import { CheckIcon } from '@/components/icons';
-import { classNames, formatPrice, getDiscountInfo, productImage } from '@/lib/format';
+import { classNames, formatPrice, getDiscountInfo, productImage, toWebp } from '@/lib/format';
 import type { ColorwayName } from '@/types';
+import { useStoreSettings } from '@/context/StoreSettingsContext';
+import { colorSoldOut, isSoldOut, productSoldOut } from '@/lib/stock';
 
-export default function ProductDetail() {
+// Keyed by slug so moving between products (e.g. via "You may also like")
+// starts fresh instead of carrying over the previous piece's colour/size/image.
+export default function ProductDetailRoute() {
   const { slug } = useParams();
+  return <ProductDetail key={slug} slug={slug} />;
+}
+
+function ProductDetail({ slug }: { slug?: string }) {
   const { products, getProduct } = useCatalog();
   const product = slug ? getProduct(slug) : undefined;
   const { addItem } = useCart();
+  const { settings } = useStoreSettings();
+  const maxQty = settings.maxQtyPerItem;
 
-  const [color, setColor] = useState<ColorwayName>(product?.defaultColor ?? 'black');
+  const [selectedColor, setColor] = useState<ColorwayName>(product?.defaultColor ?? 'black');
+  const [activeImage, setActiveImage] = useState<string>(product ? productImage(product, product.defaultColor) : '');
   const [size, setSize] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [sizeModalOpen, setSizeModalOpen] = useState(false);
+
+  // Sync active image when color selection changes
+  const handleColorChange = (newColor: ColorwayName) => {
+    setColor(newColor);
+    if (product) {
+      setActiveImage(productImage(product, newColor));
+      // Don't keep a size that isn't available in the newly chosen colour.
+      if (size && isSoldOut(product, newColor, size)) setSize('');
+    }
+  };
 
   if (!product) {
     return (
@@ -30,12 +51,51 @@ export default function ProductDetail() {
     );
   }
 
+  // Construct unique gallery items: all colorways + model shot + gallery shots
+  const allMedia: Array<{ url: string; label: string; isModel?: boolean; colorMatch?: ColorwayName }> = [];
+  
+  // 1. Colorway garments
+  product.colorways.forEach((c) => {
+    const url = productImage(product, c.name);
+    if (!allMedia.some((m) => m.url === url)) {
+      allMedia.push({ url, label: c.label, colorMatch: c.name });
+    }
+  });
+
+  // 2. Model photoshoot shot
+  if (product.modelImage) {
+    const url = toWebp(product.modelImage);
+    if (!allMedia.some((m) => m.url === url)) {
+      allMedia.push({ url, label: 'On Model', isModel: true });
+    }
+  }
+
+  // 3. Additional photoshoot gallery shots
+  if (product.gallery) {
+    product.gallery.forEach((g, idx) => {
+      const url = toWebp(g);
+      if (!allMedia.some((m) => m.url === url)) {
+        allMedia.push({ url, label: `Look ${idx + 1}`, isModel: true });
+      }
+    });
+  }
+
+  // The product may arrive after first render (catalogue sync), so fall back to
+  // its default colour if the selected one doesn't belong to it.
+  const color = product.colorways.some((c) => c.name === selectedColor) ? selectedColor : product.defaultColor;
+  const colorLabel = product.colorways.find((c) => c.name === color)?.label ?? color;
+  const currentDisplayedImage = activeImage || productImage(product, color);
+  const isViewingModel = allMedia.find((m) => m.url === currentDisplayedImage)?.isModel;
+
   const related = products.filter((p) => p.id !== product.id && p.collection === product.collection);
   const fallback = products.filter((p) => p.id !== product.id).slice(0, 3);
   const recommendations = related.length ? related.slice(0, 3) : fallback;
 
+  const allSoldOut = productSoldOut(product);
+  const thisColorSoldOut = colorSoldOut(product, color);
+
   const handleAdd = () => {
-    if (!size) return;
+    if (!size || isSoldOut(product, color, size)) return;
     addItem(product, color, size, quantity);
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
@@ -52,11 +112,11 @@ export default function ProductDetail() {
       <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
         {/* Gallery */}
         <div className="lg:sticky lg:top-28 lg:self-start">
-          <div className="aspect-[4/5] overflow-hidden rounded-2xl bg-ink-700">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-ink-700 border border-bone/10 shadow-2xl">
             <img
-              src={productImage(product, color)}
-              alt={`${product.name} — ${color}`}
-              fetchPriority="high"
+              src={currentDisplayedImage}
+              alt={`${product.name} — ${colorLabel}`}
+              {...{ fetchpriority: 'high' }}
               decoding="async"
               onError={(e) => {
                 const match = product.colorways.find((c) => c.name === color);
@@ -64,34 +124,52 @@ export default function ProductDetail() {
                   e.currentTarget.src = match.image;
                 }
               }}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover object-top transition-all duration-300"
             />
+            {isViewingModel && (
+              <span className="absolute top-4 left-4 rounded-full bg-ink/80 backdrop-blur border border-gold/40 px-3 py-1 text-xs font-semibold text-gold shadow-lg">
+                Studio Model View
+              </span>
+            )}
           </div>
-          {product.colorways.length > 1 && (
-            <div className="mt-4 flex gap-3">
-              {product.colorways.map((c) => (
-                <button
-                  key={c.name}
-                  onClick={() => setColor(c.name)}
-                  className={classNames(
-                    'aspect-[4/5] w-20 overflow-hidden rounded-lg border-2 transition',
-                    color === c.name ? 'border-gold' : 'border-transparent opacity-70 hover:opacity-100'
-                  )}
-                >
-                  <img
-                    src={productImage(product, c.name)}
-                    alt={c.label}
-                    loading="lazy"
-                    decoding="async"
-                    onError={(e) => {
-                      if (c.image && !e.currentTarget.src.endsWith(c.image)) {
-                        e.currentTarget.src = c.image;
+
+          {/* Interactive Thumbnail Gallery Strip */}
+          {allMedia.length > 1 && (
+            <div className="mt-4 flex flex-wrap gap-3">
+              {allMedia.map((m, idx) => {
+                const isSelected = currentDisplayedImage === m.url;
+                return (
+                  <button
+                    key={`${m.url}-${idx}`}
+                    onClick={() => {
+                      setActiveImage(m.url);
+                      if (m.colorMatch) {
+                        setColor(m.colorMatch);
                       }
                     }}
-                    className="h-full w-full object-cover"
-                  />
-                </button>
-              ))}
+                    title={m.label}
+                    className={classNames(
+                      'relative aspect-[4/5] w-20 overflow-hidden rounded-xl border-2 transition-all duration-300 group',
+                      isSelected
+                        ? 'border-gold ring-2 ring-gold/30 shadow-lg scale-105 opacity-100'
+                        : 'border-bone/15 opacity-65 hover:opacity-100 hover:border-bone/40'
+                    )}
+                  >
+                    <img
+                      src={m.url}
+                      alt={m.label}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover object-top"
+                    />
+                    {m.isModel && (
+                      <span className="absolute bottom-1 right-1 rounded bg-ink-950/80 px-1 py-0.5 text-[9px] font-bold uppercase text-gold">
+                        Model
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -137,20 +215,28 @@ export default function ProductDetail() {
           <div className="mt-8">
             <p className="mb-3 text-sm font-medium text-bone">
               Colour: <span className="text-bone/55">{product.colorways.find((c) => c.name === color)?.label}</span>
+              {thisColorSoldOut && <span className="ml-2 text-xs font-semibold text-red-500">Sold out</span>}
             </p>
             <div className="flex gap-3">
-              {product.colorways.map((c) => (
-                <button
-                  key={c.name}
-                  onClick={() => setColor(c.name)}
-                  aria-label={c.label}
-                  className={classNames(
-                    'h-9 w-9 rounded-full border transition',
-                    color === c.name ? 'ring-2 ring-gold ring-offset-2 ring-offset-ink' : 'border-bone/20'
-                  )}
-                  style={{ backgroundColor: c.swatch }}
-                />
-              ))}
+              {product.colorways.map((c) => {
+                const gone = colorSoldOut(product, c.name);
+                return (
+                  <button
+                    key={c.name}
+                    onClick={() => handleColorChange(c.name)}
+                    aria-label={gone ? `${c.label} (sold out)` : c.label}
+                    title={gone ? `${c.label} — sold out` : c.label}
+                    className={classNames(
+                      'relative h-9 w-9 overflow-hidden rounded-full border transition',
+                      color === c.name ? 'ring-2 ring-gold ring-offset-2 ring-offset-ink' : 'border-bone/20',
+                      gone && 'opacity-40'
+                    )}
+                    style={{ backgroundColor: c.swatch }}
+                  >
+                    {gone && <span className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 rotate-45 bg-bone/70" aria-hidden="true" />}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -163,20 +249,28 @@ export default function ProductDetail() {
               </button>
             </div>
             <div className="flex flex-wrap gap-2.5">
-              {product.sizes.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setSize(s)}
-                  className={classNames(
-                    'h-11 min-w-[3rem] rounded-lg border px-3 text-sm font-medium transition',
-                    size === s
-                      ? 'border-gold bg-gold text-ink'
-                      : 'border-bone/15 text-bone/75 hover:border-bone/40'
-                  )}
-                >
-                  {s}
-                </button>
-              ))}
+              {product.sizes.map((s) => {
+                const gone = isSoldOut(product, color, s);
+                return (
+                  <button
+                    key={s}
+                    onClick={() => !gone && setSize(s)}
+                    disabled={gone}
+                    aria-label={gone ? `${s} (sold out)` : s}
+                    title={gone ? 'Sold out' : undefined}
+                    className={classNames(
+                      'h-11 min-w-[3rem] rounded-lg border px-3 text-sm font-medium transition',
+                      gone
+                        ? 'cursor-not-allowed border-bone/10 text-bone/30 line-through'
+                        : size === s
+                        ? 'border-gold bg-gold text-ink'
+                        : 'border-bone/15 text-bone/75 hover:border-bone/40'
+                    )}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -190,6 +284,7 @@ export default function ProductDetail() {
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   className="flex h-11 w-11 items-center justify-center text-bone/70 transition hover:text-bone disabled:opacity-30"
                   disabled={quantity <= 1}
+                  aria-label="Decrease quantity"
                 >
                   -
                 </button>
@@ -198,20 +293,26 @@ export default function ProductDetail() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => setQuantity((q) => Math.min(10, q + 1))}
-                  className="flex h-11 w-11 items-center justify-center text-bone/70 transition hover:text-bone"
+                  onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}
+                  className="flex h-11 w-11 items-center justify-center text-bone/70 transition hover:text-bone disabled:opacity-30"
+                  disabled={quantity >= maxQty}
+                  aria-label="Increase quantity"
                 >
                   +
                 </button>
               </div>
-              <span className="text-xs text-bone/40">Max 10 per order</span>
+              <span className="text-xs text-bone/40">Max {maxQty} per order</span>
             </div>
           </div>
 
           {/* Add to cart */}
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <button onClick={handleAdd} disabled={!size} className="btn-primary flex-1">
-              {added ? (
+            <button onClick={handleAdd} disabled={!size || allSoldOut || thisColorSoldOut} className="btn-primary flex-1">
+              {allSoldOut ? (
+                'Sold out'
+              ) : thisColorSoldOut ? (
+                'Sold out in this colour'
+              ) : added ? (
                 <>
                   <CheckIcon width={18} height={18} /> Added {quantity} to bag
                 </>
@@ -227,7 +328,9 @@ export default function ProductDetail() {
           <ul className="mt-8 space-y-2 border-t border-bone/10 pt-6 text-sm text-bone/55">
             <li>• 100% premium ringspun cotton, 220gsm</li>
             <li>• Soft hand-feel print, made to last</li>
-            <li>• Free delivery on orders over GH₵400</li>
+            {settings.freeShippingThreshold > 0 && (
+              <li>• Free delivery on orders over {formatPrice(settings.freeShippingThreshold)}</li>
+            )}
           </ul>
         </div>
       </div>

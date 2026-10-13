@@ -1,24 +1,24 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Products: Anyone can read visible products; Admin has full read/write access
+
+    // The storefront never talks to Firestore directly — every read and write
+    // goes through the API (/api/*), which uses the Admin SDK and is not
+    // subject to these rules. The server is where prices, stock, coupons and
+    // admin access are enforced, so browsers get no direct access at all.
+    //
+    // Without this, anyone could write an order with any price straight into
+    // the database, or download every coupon (including hidden codes).
+
+    // Catalogue is public data anyway; read-only access is harmless.
     match /products/{productId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.token.email == 'admin@levush.com';
+      allow write: if false;
     }
 
-    // Orders: Users can read their own orders; Admin has full access; Anyone can create an order (checkout)
-    match /orders/{orderId} {
-      allow create: if true;
-      allow read: if request.auth != null && (request.auth.token.email == 'admin@levush.com' || resource.data.uid == request.auth.uid);
-      allow update, delete: if request.auth != null && request.auth.token.email == 'admin@levush.com';
-    }
-
-    // Coupons: Anyone can read/validate coupons; Admin has full control
-    match /coupons/{couponCode} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.token.email == 'admin@levush.com';
+    // orders, coupons (+ redemptions), settings, and anything else: API only.
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

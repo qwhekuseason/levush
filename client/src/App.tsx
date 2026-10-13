@@ -18,6 +18,7 @@ const SignIn = lazy(() => import('@/pages/SignIn'));
 const SignUp = lazy(() => import('@/pages/SignUp'));
 const Settings = lazy(() => import('@/pages/Settings'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
+const TrackOrder = lazy(() => import('@/pages/TrackOrder'));
 
 // Legal pages
 const ShippingReturns = lazy(() => import('@/pages/legal/ShippingReturns'));
@@ -30,6 +31,7 @@ const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'));
 const AdminProducts = lazy(() => import('@/pages/admin/AdminProducts'));
 const AdminOrders = lazy(() => import('@/pages/admin/AdminOrders'));
 const AdminCoupons = lazy(() => import('@/pages/admin/AdminCoupons'));
+const AdminSettings = lazy(() => import('@/pages/admin/AdminSettings'));
 
 function PageLoader() {
   return (
@@ -64,6 +66,7 @@ export default function App() {
                 <Route path="signin" element={<SignIn />} />
                 <Route path="signup" element={<SignUp />} />
                 <Route path="settings" element={<Settings />} />
+                <Route path="track" element={<TrackOrder />} />
 
                 {/* Legal Pages */}
                 <Route path="policies/shipping-returns" element={<ShippingReturns />} />
@@ -83,6 +86,7 @@ export default function App() {
                   <Route path="products" element={<AdminProducts />} />
                   <Route path="orders" element={<AdminOrders />} />
                   <Route path="coupons" element={<AdminCoupons />} />
+                  <Route path="settings" element={<AdminSettings />} />
                 </Route>
 
                 <Route path="*" element={<NotFound />} />

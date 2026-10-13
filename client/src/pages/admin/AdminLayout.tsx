@@ -5,7 +5,8 @@ const tabs = [
   { to: '/admin', label: 'Dashboard', end: true },
   { to: '/admin/products', label: 'Products' },
   { to: '/admin/orders', label: 'Orders' },
-  { to: '/admin/coupons', label: 'Promo Coupons' },
+  { to: '/admin/coupons', label: 'Coupons' },
+  { to: '/admin/settings', label: 'Store Settings' },
 ];
 
 export default function AdminLayout() {

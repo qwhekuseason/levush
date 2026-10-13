@@ -7,6 +7,7 @@ import meRouter from './routes/me.js';
 import productsRouter from './routes/products.js';
 import ordersRouter from './routes/orders.js';
 import couponsRouter from './routes/coupons.js';
+import settingsRouter from './routes/settings.js';
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use('/api/me', meRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/coupons', couponsRouter);
+app.use('/api/settings', settingsRouter);
 
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found.' }));
 

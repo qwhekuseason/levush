@@ -151,7 +151,7 @@ export default function Account() {
                         o.status === 'paid' || o.status === 'shipped' ? 'text-green-600' : 
                         o.status === 'cancelled' ? 'text-red-500' : 'text-bone/40'
                       )}>
-                        {o.status}
+                        {o.status === 'received' ? 'Awaiting payment' : o.status}
                       </p>
                     </div>
                   </li>

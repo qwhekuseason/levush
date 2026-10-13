@@ -4,6 +4,7 @@ import Logo from '@/components/Logo';
 import { CartIcon, CloseIcon, MenuIcon, UserIcon } from '@/components/icons';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
+import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { classNames } from '@/lib/format';
 
 const baseLinks = [
@@ -16,6 +17,8 @@ const baseLinks = [
 export default function Navbar() {
   const { count, openCart } = useCart();
   const { isAdmin, user } = useAuth();
+  const { announcement } = useStoreSettings().settings;
+  const showAnnouncement = announcement.enabled && announcement.text.trim().length > 0;
   const links = isAdmin ? [...baseLinks, { to: '/admin', label: 'Admin' }] : baseLinks;
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -41,6 +44,17 @@ export default function Navbar() {
           : 'border-b border-transparent bg-transparent'
       )}
     >
+      {showAnnouncement && (
+        <div className="flex h-9 items-center justify-center bg-gold px-4 text-center text-xs font-semibold tracking-wide text-ink">
+          {announcement.link ? (
+            <Link to={announcement.link} className="truncate hover:underline underline-offset-2">
+              {announcement.text} →
+            </Link>
+          ) : (
+            <span className="truncate">{announcement.text}</span>
+          )}
+        </div>
+      )}
       <nav className="container-site flex h-16 items-center justify-between md:h-20">
         <Logo />
 

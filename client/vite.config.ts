@@ -31,7 +31,8 @@ export default defineConfig({
             if (id.includes('framer-motion')) {
               return 'framer-motion';
             }
-            if (id.includes('firebase')) {
+            // Storage is admin-only and lazy-loaded; keep it out of the shared chunk.
+            if (id.includes('firebase') && !id.includes('storage')) {
               return 'firebase-bundle';
             }
           }

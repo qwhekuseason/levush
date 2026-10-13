@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api';
 import { classNames, formatPrice } from '@/lib/format';
 import type { Order, OrderStatus } from '@/types';
+import { whatsappLink } from '@/lib/whatsapp';
 
 const ALL_STATUSES: Array<OrderStatus | 'all'> = ['all', 'received', 'paid', 'shipped', 'cancelled'];
 
@@ -14,7 +15,7 @@ const statusStyle: Record<OrderStatus, string> = {
 };
 
 const statusLabel: Record<OrderStatus, string> = {
-  received: 'Received / Awaiting',
+  received: 'Awaiting Payment',
   paid: 'Paid',
   shipped: 'Shipped',
   cancelled: 'Cancelled',
@@ -56,10 +57,19 @@ export default function AdminOrders() {
     if (!header) return;
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
     try {
-      await api.updateOrderStatus(id, status, header);
+      // Use the server copy so the status timeline (shown to the customer) is exact.
+      const saved = await api.updateOrderStatus(id, status, header);
+      setOrders((prev) => prev.map((o) => (o.id === id ? saved : o)));
     } catch {
       void load();
     }
+  };
+
+  const saveNote = async (id: string, customerNote: string) => {
+    const header = await authHeader();
+    if (!header) throw new Error('Your session expired — sign in again.');
+    const saved = await api.updateOrderNote(id, customerNote, header);
+    setOrders((prev) => prev.map((o) => (o.id === id ? saved : o)));
   };
 
   const filtered = useMemo(() => {
@@ -207,6 +217,21 @@ export default function AdminOrders() {
                         {addr?.phone && (
                           <p className="text-xs text-bone/70 mt-1 font-mono">📞 {addr.phone}</p>
                         )}
+                        {addr?.phone && (
+                          <a
+                            href={whatsappLink(
+                              addr.phone,
+                              o.status === 'received'
+                                ? `Hi ${addr.firstName}, this is Levush about your order ${o.id} (${formatPrice(o.total)}). `
+                                : `Hi ${addr.firstName}, this is Levush about your order ${o.id}. `
+                            )}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#25D366] px-3 py-1 text-[11px] font-semibold text-white hover:bg-[#1ebe5a]"
+                          >
+                            Message on WhatsApp
+                          </a>
+                        )}
                         {o.uid && (
                           <p className="text-[10px] text-bone/40 mt-2 font-mono truncate">UID: {o.uid}</p>
                         )}
@@ -351,11 +376,21 @@ export default function AdminOrders() {
                                 : 'border border-bone/20 text-bone/75 hover:border-gold hover:text-gold bg-ink-800'
                             )}
                           >
-                            Mark as {s}
+                            {statusLabel[s]}
                           </button>
                         ))}
                       </div>
                     </div>
+
+                    {o.statusHistory && o.statusHistory.length > 0 && (
+                      <p className="mt-3 text-[11px] text-bone/45">
+                        {o.statusHistory
+                          .map((h) => `${statusLabel[h.status]} ${new Date(h.at).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`)
+                          .join('  →  ')}
+                      </p>
+                    )}
+
+                    <OrderNote key={o.id} initial={o.customerNote ?? ''} onSave={(note) => saveNote(o.id, note)} />
 
                   </div>
                 )}
@@ -364,6 +399,50 @@ export default function AdminOrders() {
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+/** Message shown to the customer on their tracking page. */
+function OrderNote({ initial, onSave }: { initial: string; onSave: (note: string) => Promise<void> }) {
+  const [note, setNote] = useState(initial);
+  const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const dirty = note.trim() !== initial.trim();
+  return (
+    <div className="mt-4 border-t border-bone/10 pt-4">
+      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-bone/60">
+        Note to customer <span className="font-normal normal-case tracking-normal text-bone/40">(shown on their tracking page)</span>
+      </label>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <textarea
+          rows={2}
+          maxLength={500}
+          className="field flex-1 resize-none text-sm"
+          placeholder="e.g. Payment received, thank you! Our rider will call you on Thursday."
+          value={note}
+          onChange={(e) => {
+            setNote(e.target.value);
+            setState('idle');
+          }}
+        />
+        <button
+          type="button"
+          disabled={!dirty || state === 'saving'}
+          onClick={async () => {
+            setState('saving');
+            try {
+              await onSave(note);
+              setState('saved');
+            } catch {
+              setState('error');
+            }
+          }}
+          className="btn-outline self-start text-xs disabled:opacity-40"
+        >
+          {state === 'saving' ? 'Saving…' : state === 'saved' && !dirty ? 'Saved ✓' : 'Save note'}
+        </button>
+      </div>
+      {state === 'error' && <p className="mt-1 text-xs text-red-400">Couldn’t save the note. Try again.</p>}
     </div>
   );
 }

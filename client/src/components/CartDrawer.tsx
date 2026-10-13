@@ -4,7 +4,7 @@ import { CloseIcon, MinusIcon, PlusIcon } from '@/components/icons';
 import { formatPrice, toWebp } from '@/lib/format';
 
 export default function CartDrawer() {
-  const { items, isOpen, closeCart, subtotal, setQuantity, removeItem, count } = useCart();
+  const { items, isOpen, closeCart, subtotal, setQuantity, removeItem, maxQty, count } = useCart();
 
   return (
     <>
@@ -46,13 +46,13 @@ export default function CartDrawer() {
               {items.map((item) => (
                 <li key={item.id} className="flex gap-4 py-5">
                   <img
-                    src={toWebp(item.image) || '/assets/hero-poster.webp'}
+                    src={toWebp(item.image) || '/assets/Created_with_purpose.webp'}
                     alt={item.name}
                     loading="lazy"
                     decoding="async"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
-                      e.currentTarget.src = '/assets/hero-poster.webp';
+                      e.currentTarget.src = '/assets/Created_with_purpose.webp';
                     }}
                     className="h-24 w-20 rounded-lg object-cover"
                   />
@@ -61,8 +61,11 @@ export default function CartDrawer() {
                       <div>
                         <p className="font-medium leading-tight">{item.name}</p>
                         <p className="mt-0.5 text-xs uppercase tracking-wide text-bone/45">
-                          {item.color} · {item.size}
+                          {item.colorLabel ?? item.color} · {item.size}
                         </p>
+                        {item.soldOut && (
+                      <p className="mt-1 text-xs font-semibold text-red-500" role="alert">Sold out. Please remove to continue.</p>
+                    )}
                       </div>
                       <div className="text-right">
                         <p className="font-medium text-gold">{formatPrice(item.price * item.quantity)}</p>
@@ -79,7 +82,7 @@ export default function CartDrawer() {
                           <MinusIcon width={15} height={15} />
                         </button>
                         <span className="w-5 text-center text-sm">{item.quantity}</span>
-                        <button onClick={() => setQuantity(item.id, item.quantity + 1)} className="text-bone/70 hover:text-bone" aria-label="Increase quantity">
+                        <button onClick={() => setQuantity(item.id, item.quantity + 1)} disabled={item.quantity >= maxQty} className="text-bone/70 hover:text-bone disabled:opacity-30 disabled:cursor-not-allowed" aria-label="Increase quantity">
                           <PlusIcon width={15} height={15} />
                         </button>
                       </div>

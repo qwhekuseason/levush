@@ -16,6 +16,7 @@ const cols = [
     links: [
       { to: '/about', label: 'About' },
       { to: '/contact', label: 'Contact Us' },
+      { to: '/track', label: 'Track Your Order' },
       { to: '/account', label: 'Account' },
     ],
   },

@@ -1,10 +1,11 @@
 import { useState, type ChangeEvent } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useCatalog } from '@/context/CatalogContext';
-import { api } from '@/lib/api';
+import { api, type ProductPayload } from '@/lib/api';
+import { isSoldOut, productSoldOut, variantKey } from '@/lib/stock';
 import { classNames, formatPrice, getDiscountInfo, productImage, toWebp } from '@/lib/format';
 import { compressImageToWebp, compressImageToDataUrl } from '@/lib/imageCompressor';
-import { storage, uploadImageToStorage } from '@/lib/firebase';
+import { uploadImageToStorage } from '@/lib/firebase';
 import type { Colorway, Product, ProductTier } from '@/types';
 
 const COLLECTIONS = ['Statement', 'Remix'];
@@ -123,10 +124,11 @@ export default function AdminProducts() {
     try {
       const header = await authHeader();
       if (!header) throw new Error('Not authorised.');
-      const payload: Partial<Product> = {
+      const payload: ProductPayload = {
         ...draft,
         defaultColor: draft.colorways?.[0]?.name ?? 'black',
-        originalPrice: (draft.originalPrice && draft.originalPrice > (draft.price ?? 0)) ? draft.originalPrice : undefined,
+        // null (not undefined) so clearing a sale price actually removes it.
+        originalPrice: (draft.originalPrice && draft.originalPrice > (draft.price ?? 0)) ? draft.originalPrice : null,
       };
       if (editingId) await api.updateProduct(editingId, payload, header);
       else await api.createProduct(payload, header);
@@ -160,6 +162,16 @@ export default function AdminProducts() {
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not delete.');
     }
+  };
+
+  /** Mark the given colour:size keys sold out (`out`) or back in stock. */
+  const toggleStock = (keys: string[], out: boolean) => {
+    setDraft((d) => {
+      if (!d) return d;
+      const current = new Set(d.soldOut ?? []);
+      keys.forEach((k) => (out ? current.add(k) : current.delete(k)));
+      return { ...d, soldOut: [...current] };
+    });
   };
 
   const draftDiscount = draft ? getDiscountInfo(draft) : null;
@@ -370,6 +382,73 @@ export default function AdminProducts() {
             <button onClick={addColorway} className="mt-3 text-sm text-gold hover:underline">+ Add colourway</button>
           </div>
 
+          {/* Stock */}
+          {(draft.colorways?.length ?? 0) > 0 && (draft.sizes?.length ?? 0) > 0 && (
+            <div className="mt-6">
+              <p className="mb-1 text-sm font-medium text-bone">Stock</p>
+              <p className="mb-3 text-xs text-bone/45">
+                Tap a size to mark it sold out in that colour. Customers can’t order sold-out sizes.
+              </p>
+              <div className="overflow-x-auto rounded-lg border border-bone/10">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-bone/10 text-xs text-bone/50">
+                      <th className="px-3 py-2 text-left font-medium">Colour</th>
+                      {(draft.sizes ?? []).map((sz) => (
+                        <th key={sz} className="px-2 py-2 font-medium">{sz}</th>
+                      ))}
+                      <th className="px-3 py-2" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(draft.colorways ?? []).map((c) => {
+                      const sizes = draft.sizes ?? [];
+                      const allOut = sizes.every((sz) => isSoldOut(draft as Product, c.name, sz));
+                      return (
+                        <tr key={c.name} className="border-b border-bone/5 last:border-0">
+                          <td className="whitespace-nowrap px-3 py-2">
+                            <span className="mr-2 inline-block h-3 w-3 rounded-full border border-bone/20 align-middle" style={{ backgroundColor: c.swatch }} />
+                            {c.label || c.name}
+                          </td>
+                          {sizes.map((sz) => {
+                            const out = isSoldOut(draft as Product, c.name, sz);
+                            return (
+                              <td key={sz} className="px-1 py-1.5 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleStock([variantKey(c.name, sz)], !out)}
+                                  aria-label={`${c.label || c.name} ${sz}: ${out ? 'sold out' : 'in stock'}`}
+                                  className={classNames(
+                                    'h-8 w-full min-w-[2.6rem] rounded-md border text-[11px] font-semibold transition',
+                                    out
+                                      ? 'border-red-500/40 bg-red-500/10 text-red-500 line-through'
+                                      : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 hover:border-emerald-500/60'
+                                  )}
+                                >
+                                  {out ? 'Out' : 'In'}
+                                </button>
+                              </td>
+                            );
+                          })}
+                          <td className="whitespace-nowrap px-3 py-2 text-right">
+                            <button
+                              type="button"
+                              onClick={() => toggleStock(sizes.map((sz) => variantKey(c.name, sz)), !allOut)}
+                              className="text-xs text-bone/50 hover:text-gold"
+                            >
+                              {allOut ? 'Restock all' : 'All sold out'}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-2 text-[11px] text-bone/35">Remember to press “Save changes” below.</p>
+            </div>
+          )}
+
           <div className="mt-6 flex gap-3">
             <button onClick={save} disabled={busy} className="btn-primary">
               {busy ? 'Saving…' : editingId ? 'Save changes' : 'Create product'}
@@ -404,6 +483,13 @@ export default function AdminProducts() {
                 <p className="text-xs text-bone/45">
                   {p.collection} · {p.tier} · {p.colorways.length} colour(s)
                   {p.isHidden && <span className="ml-2 rounded bg-red-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-red-400">HIDDEN</span>}
+                  {productSoldOut(p) ? (
+                    <span className="ml-2 rounded bg-bone px-1.5 py-0.5 text-[10px] font-semibold text-ink">SOLD OUT</span>
+                  ) : (p.soldOut?.length ?? 0) > 0 ? (
+                    <span className="ml-2 rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-600">
+                      {p.soldOut!.length} size{p.soldOut!.length === 1 ? '' : 's'} out
+                    </span>
+                  ) : null}
                 </p>
               </div>
 

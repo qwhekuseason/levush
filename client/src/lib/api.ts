@@ -1,13 +1,19 @@
 import type {
   Coupon,
-  CouponKind,
+  CouponInput,
   Me,
   Order,
   OrderStatus,
   Product,
+  PublicCoupon,
+  StoreSettings,
+  TrackedOrder,
 } from '@/types';
 
 const BASE = '/api';
+
+/** Product writes; `originalPrice: null` explicitly removes a sale price. */
+export type ProductPayload = Partial<Omit<Product, 'originalPrice'>> & { originalPrice?: number | null };
 
 async function request<T>(path: string, init: RequestInit = {}, auth?: string | null): Promise<T> {
   const headers: Record<string, string> = {
@@ -35,11 +41,12 @@ export const api = {
   me: (auth?: string | null) => request<Me>('/me', {}, auth),
 
   // Catalogue
-  listProducts: () => request<Product[]>('/products'),
+  /** `fresh` bypasses the CDN cache (admin screens, right after an edit). */
+  listProducts: (fresh = false) => request<Product[]>(fresh ? `/products?fresh=${Date.now()}` : '/products'),
   getProduct: (slug: string) => request<Product>(`/products/${slug}`),
-  createProduct: (data: Partial<Product>, auth: string) =>
+  createProduct: (data: ProductPayload, auth: string) =>
     request<Product>('/products', { method: 'POST', body: JSON.stringify(data) }, auth),
-  updateProduct: (id: string, data: Partial<Product>, auth: string) =>
+  updateProduct: (id: string, data: ProductPayload, auth: string) =>
     request<Product>(`/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }, auth),
   deleteProduct: (id: string, auth: string) =>
     request<{ deleted: boolean }>(`/products/${id}`, { method: 'DELETE' }, auth),
@@ -47,7 +54,7 @@ export const api = {
   // Orders
   createOrder: (
     input: {
-      items: { productId: string; name: string; image?: string; color?: string; size?: string; quantity: number; price: number }[];
+      items: { productId: string; name: string; image?: string; color?: string; colorKey?: string; size?: string; quantity: number; price: number }[];
       email: string;
       shippingAddress?: { firstName: string; lastName: string; address: string; city: string; phone: string };
       paymentMethod?: string;
@@ -64,22 +71,38 @@ export const api = {
   listAllOrders: (auth: string) => request<Order[]>('/orders', {}, auth),
   updateOrderStatus: (id: string, status: OrderStatus, auth: string) =>
     request<Order>(`/orders/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }, auth),
+  updateOrderNote: (id: string, customerNote: string, auth: string) =>
+    request<Order>(`/orders/${id}`, { method: 'PATCH', body: JSON.stringify({ customerNote }) }, auth),
+  trackOrder: (id: string, phone: string) =>
+    request<TrackedOrder>('/orders/track', { method: 'POST', body: JSON.stringify({ id, phone }) }),
 
   // Coupons
-  validateCoupon: (code: string) =>
-    request<{ valid: boolean; code?: string; kind?: CouponKind; value?: number; label?: string }>(
+  publicCoupons: () => request<PublicCoupon[]>('/coupons/public'),
+  validateCoupon: (code: string, ctx: { subtotal: number; email?: string }) =>
+    request<({ valid: true } & PublicCoupon) | { valid: false; error?: string }>(
       '/coupons/validate',
-      { method: 'POST', body: JSON.stringify({ code }) }
+      { method: 'POST', body: JSON.stringify({ code, ...ctx }) }
     ),
 
   // Admin — coupon management
   listAllCoupons: (auth: string) => request<Coupon[]>('/coupons', {}, auth),
-  createCoupon: (
-    data: { code: string; label: string; kind: CouponKind; value: number; email?: string },
-    auth: string
-  ) => request<Coupon>('/coupons', { method: 'POST', body: JSON.stringify(data) }, auth),
+  createCoupon: (data: CouponInput, auth: string) =>
+    request<Coupon>('/coupons', { method: 'POST', body: JSON.stringify(data) }, auth),
+  updateCoupon: (code: string, data: Partial<CouponInput>, auth: string) =>
+    request<Coupon>(`/coupons/${encodeURIComponent(code)}`, { method: 'PUT', body: JSON.stringify(data) }, auth),
   deleteCoupon: (code: string, auth: string) =>
-    request<{ deleted: boolean }>(`/coupons/${code}`, { method: 'DELETE' }, auth),
+    request<{ deleted: boolean }>(`/coupons/${encodeURIComponent(code)}`, { method: 'DELETE' }, auth),
+  couponRedemptions: (code: string, auth: string) =>
+    request<{ orderId: string; email: string; discount: number; at: number }[]>(
+      `/coupons/${encodeURIComponent(code)}/redemptions`,
+      {},
+      auth
+    ),
+
+  // Store settings
+  getSettings: (fresh = false) => request<StoreSettings>(fresh ? `/settings?fresh=${Date.now()}` : '/settings'),
+  updateSettings: (data: Partial<StoreSettings>, auth: string) =>
+    request<StoreSettings>('/settings', { method: 'PUT', body: JSON.stringify(data) }, auth),
 };
 
 export type { Coupon };

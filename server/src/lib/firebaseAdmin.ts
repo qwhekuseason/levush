@@ -64,6 +64,9 @@ if (!admin.apps.length) {
 }
 
 export const db: Firestore = admin.firestore();
+// Optional fields (e.g. a product with no sale price) are often `undefined`;
+// without this Firestore rejects the whole write.
+db.settings({ ignoreUndefinedProperties: true });
 export const authAdmin = admin.auth();
 export const firebaseReady = Boolean(serviceAccount);
 

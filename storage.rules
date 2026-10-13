@@ -1,16 +1,26 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Product image uploads: public read, authenticated admin write
-    match /products/{allPaths=**} {
-      allow read: if true;
-      allow write: if request.auth != null;
+
+    function isAdmin() {
+      // Keep in sync with ADMIN_EMAILS on the server.
+      return request.auth != null && request.auth.token.email == 'admin@levush.com';
     }
 
-    // Default rule
+    // Product images: anyone can view; only the admin can upload/replace,
+    // and only reasonably sized images.
+    match /products/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin()
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if isAdmin();
+    }
+
+    // Everything else is read-only.
     match /{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if false;
     }
   }
 }

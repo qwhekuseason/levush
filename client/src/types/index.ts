@@ -34,11 +34,17 @@ export interface Product {
   colorways: Colorway[];
   defaultColor: ColorwayName;
   sizes: string[];
+  /** human model photoshoot shot */
+  modelImage?: string;
+  /** additional gallery shots (models, close-ups) */
+  gallery?: string[];
   /** marketing flags */
   isNew?: boolean;
   isBestSeller?: boolean;
   /** admin can hide a product from the buyer-facing shop */
   isHidden?: boolean;
+  /** sold-out variants as `${colourName}:${size}` keys */
+  soldOut?: string[];
 }
 
 export interface CartItem {
@@ -49,6 +55,10 @@ export interface CartItem {
   price: number;
   originalPrice?: number;
   color: ColorwayName;
+  /** human-readable colour, e.g. "Raisin Black" */
+  colorLabel?: string;
+  /** derived from the live catalogue: this colour/size can't be ordered right now */
+  soldOut?: boolean;
   size: string;
   quantity: number;
 }
@@ -113,18 +123,78 @@ export interface Order {
   couponCode: string | null;
   total: number;
   status: OrderStatus;
+  statusHistory?: Array<{ status: OrderStatus; at: number }>;
+  customerNote?: string;
   createdAt: number;
 }
 
-export type CouponKind = 'percent' | 'shipping';
+/** The customer-safe view returned by order tracking. */
+export interface TrackedOrder {
+  id: string;
+  status: OrderStatus;
+  statusHistory: Array<{ status: OrderStatus; at: number }>;
+  items: Array<{ name: string; color?: string; size?: string; quantity: number; price: number }>;
+  subtotal: number;
+  discount: number;
+  shipping: number;
+  total: number;
+  city: string;
+  customerNote: string;
+  createdAt: number;
+}
+
+export type CouponKind = 'percent' | 'fixed' | 'shipping';
+export type CouponVisibility = 'hidden' | 'public';
+export type CouponStatus = 'active' | 'paused' | 'scheduled' | 'expired' | 'exhausted';
 
 export interface Coupon {
   code: string;
   label: string;
   kind: CouponKind;
   value: number;
-  used: boolean;
-  email: string;
+  visibility: CouponVisibility;
+  active: boolean;
+  email: string | null;
+  minSubtotal: number;
+  maxDiscount: number | null;
+  usageLimit: number | null;
+  perCustomerLimit: number | null;
+  usedCount: number;
+  startsAt: number | null;
+  expiresAt: number | null;
   createdAt: number;
+  updatedAt: number;
+  status: CouponStatus;
 }
 
+export type CouponInput = Omit<Coupon, 'usedCount' | 'createdAt' | 'updatedAt' | 'status'>;
+
+/** What shoppers see about an offer (no limits or customer data). */
+export interface PublicCoupon {
+  code: string;
+  label: string;
+  kind: CouponKind;
+  value: number;
+  minSubtotal: number;
+  maxDiscount: number | null;
+  expiresAt: number | null;
+}
+
+export interface PaymentAccount {
+  network: string;
+  number: string;
+  name: string;
+}
+
+export interface StoreSettings {
+  shippingFee: number;
+  freeShippingThreshold: number;
+  maxQtyPerItem: number;
+  ordersOpen: boolean;
+  closedMessage: string;
+  announcement: { enabled: boolean; text: string; link: string };
+  /** international digits, e.g. 233241234567 */
+  whatsappNumber: string;
+  paymentAccounts: PaymentAccount[];
+  paymentNote: string;
+}

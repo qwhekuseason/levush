@@ -29,9 +29,24 @@ export interface Product {
   isNew?: boolean;
   isBestSeller?: boolean;
   isHidden?: boolean;
+  /** sold-out variants as `${colourName}:${size}` keys */
+  soldOut?: string[];
 }
 
 const COLLECTION = 'products';
+
+export const variantKey = (color: string, size: string) => `${color}:${size}`;
+
+export function isSoldOut(p: Pick<Product, 'soldOut'>, color: string, size: string): boolean {
+  return Boolean(p.soldOut?.includes(variantKey(color, size)));
+}
+
+/** Keep only keys that point at a real colour + size of this product. */
+function cleanSoldOut(keys: unknown, colorways: Colorway[], sizes: string[]): string[] {
+  if (!Array.isArray(keys)) return [];
+  const valid = new Set(colorways.flatMap((c) => sizes.map((s) => variantKey(c.name, s))));
+  return [...new Set(keys.map(String))].filter((k) => valid.has(k));
+}
 
 // Seed catalogue (also the source of truth for prices when validating orders).
 export const seed: Product[] = [
@@ -46,7 +61,7 @@ export const seed: Product[] = [
     },
     description:
       'Clean script over a bold, boxed statement. A wardrobe staple that speaks intention the moment you put it on.',
-    price: 250,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'white',
@@ -68,8 +83,8 @@ export const seed: Product[] = [
     },
     description:
       'A reverent nod to sport-brand energy, reimagined around the Lion of Judah. Heavyweight cotton.',
-    price: 320,
-    originalPrice: 380,
+    price: 70,
+
     tier: 'limited',
     collection: 'Remix',
     defaultColor: 'black',
@@ -91,7 +106,7 @@ export const seed: Product[] = [
     },
     description:
       'Our boldest remix – a swoosh of grace and a cross where the tick should be. Premium ringspun cotton.',
-    price: 320,
+    price: 70,
     tier: 'limited',
     collection: 'Remix',
     defaultColor: 'black',
@@ -113,7 +128,7 @@ export const seed: Product[] = [
     },
     description:
       'A road stretching to the horizon, framed in a clean editorial lockup. For everyone choosing the narrow road.',
-    price: 250,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'white',
@@ -135,7 +150,7 @@ export const seed: Product[] = [
     },
     description:
       'A heavyweight, oversized hoodie designed for the colder days. Premium cotton blend, soft fleece interior, and a bold statement of faith.',
-    price: 450,
+    price: 70,
     tier: 'core',
     category: 'hoodie',
     collection: 'Statement',
@@ -158,7 +173,7 @@ export const seed: Product[] = [
     },
     description:
       'The essential crewneck sweatshirt. Clean embroidered typography on a plush, durable fabric. Perfect for layering.',
-    price: 380,
+    price: 70,
     tier: 'core',
     category: 'sweatshirt',
     collection: 'Statement',
@@ -180,7 +195,7 @@ export const seed: Product[] = [
     },
     description:
       'Minimal, confident, unmistakable. A spaced caption above a deep-red block – identity worn quietly but firmly.',
-    price: 250,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'white',
@@ -202,7 +217,7 @@ export const seed: Product[] = [
     },
     description:
       'Essential faith streetwear designed with minimalist, impactful lettering. Available in two colourways.',
-    price: 250,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'black',
@@ -224,7 +239,7 @@ export const seed: Product[] = [
     },
     description:
       'A bold signature piece featuring clean typography celebrating divine favor. Four colourways – pick your declaration.',
-    price: 260,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'red',
@@ -247,7 +262,7 @@ export const seed: Product[] = [
       reference: 'Proverbs 3:5',
     },
     description: 'Thoughtful contemporary graphic tee.',
-    price: 260,
+    price: 70,
     tier: 'core',
     collection: 'Remix',
     defaultColor: 'black',
@@ -267,7 +282,7 @@ export const seed: Product[] = [
       reference: 'Colossians 3:12',
     },
     description: 'Crisp black-on-white graphic tee from the D-Series drop.',
-    price: 260,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'white',
@@ -288,7 +303,7 @@ export const seed: Product[] = [
     },
     description:
       'D2 drops in two distinct colourways – bold black-and-gold on white, and understated white on ash.',
-    price: 270,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'gold',
@@ -310,7 +325,7 @@ export const seed: Product[] = [
       reference: 'Colossians 3:12',
     },
     description: 'D3 comes in a sharp black-and-red-on-white graphic, from our D-Series statement collection.',
-    price: 260,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'red',
@@ -331,7 +346,7 @@ export const seed: Product[] = [
     },
     description:
       'Refined editorial styling on a plush heavyweight silhouette. The "Who He Says I Am – EXCELLENT" inscription in cream, or a rich earth brown.',
-    price: 280,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'cream',
@@ -353,7 +368,7 @@ export const seed: Product[] = [
     },
     description:
       'A timeless staple embroidered with an unwavering message of trust. Two subtle colourway variations.',
-    price: 260,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'black',
@@ -375,7 +390,7 @@ export const seed: Product[] = [
     },
     description:
       'Refined graphic print on a plush heavyweight silhouette. Available in classic red/brown and a striking white colourway.',
-    price: 270,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'red',
@@ -397,7 +412,7 @@ export const seed: Product[] = [
     },
     description:
       'Eight distinct colourways spanning four design variations. A streetwear motif celebrating divine goodness – pick your iteration.',
-    price: 290,
+    price: 70,
     tier: 'core',
     collection: 'Remix',
     defaultColor: 'black',
@@ -426,7 +441,7 @@ export const seed: Product[] = [
     },
     description:
       'Clean typographic lockup with vivid contrast on durable ring-spun fabric. Red or white – both carry the prayer.',
-    price: 260,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'red',
@@ -447,7 +462,7 @@ export const seed: Product[] = [
       reference: 'Isaiah 41:10',
     },
     description: 'Comforting & powerful graphic lockup on high-density cotton.',
-    price: 250,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'black',
@@ -468,7 +483,7 @@ export const seed: Product[] = [
     },
     description:
       'Striking graphic print crafted for everyday boldness. Two red colourway variations to match your mood.',
-    price: 270,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'red',
@@ -490,7 +505,7 @@ export const seed: Product[] = [
     },
     description:
       'Iconic evangelical statement tee with vintage contrast styling. Available in Raisin Black and Ash Grey.',
-    price: 250,
+    price: 70,
     tier: 'core',
     collection: 'Remix',
     defaultColor: 'black',
@@ -512,7 +527,7 @@ export const seed: Product[] = [
     },
     description:
       'Bold center graphic celebrating redemption and spiritual freedom. The "One Thing Is Sure – Jesus Sets Free" inscription on crisp white.',
-    price: 260,
+    price: 70,
     tier: 'core',
     collection: 'Remix',
     defaultColor: 'white',
@@ -534,7 +549,7 @@ export const seed: Product[] = [
     },
     description:
       'Six colourways across multiple design iterations. The LOTW inscription in black, brown, pink, and beyond – find your light.',
-    price: 280,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'black',
@@ -560,7 +575,7 @@ export const seed: Product[] = [
       reference: 'Ephesians 3:20',
     },
     description: 'Modern streetwear design inspiring higher purpose.',
-    price: 270,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'black',
@@ -580,7 +595,7 @@ export const seed: Product[] = [
       reference: 'Psalm 3:6',
     },
     description: 'Bold scripture design reminding you of divine protection.',
-    price: 270,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'black',
@@ -601,7 +616,7 @@ export const seed: Product[] = [
     },
     description:
       'Deeply resonant scripture print on ultra-soft premium cotton. Red colourway with bold graphic.',
-    price: 270,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'red',
@@ -622,7 +637,7 @@ export const seed: Product[] = [
     },
     description:
       'Dramatic chain-breaking graphic with bold brushstroke lettering. A powerful declaration of what the cross accomplished.',
-    price: 280,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'white',
@@ -647,7 +662,7 @@ export const seed: Product[] = [
       reference: 'James 4:7',
     },
     description: 'Impactful text piece highlighting spiritual authority through humility.',
-    price: 260,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'black',
@@ -668,7 +683,7 @@ export const seed: Product[] = [
     },
     description:
       "Six colourways spanning the full TSOL range – from the signature white 'God's Word' tee to bold typographic and red-accent variants. The same inscription, six expressions.",
-    price: 280,
+    price: 70,
     tier: 'core',
     collection: 'Remix',
     defaultColor: 'white',
@@ -695,7 +710,7 @@ export const seed: Product[] = [
     },
     description:
       'A sobering declaration printed boldly on heavyweight cotton. Place your trust where it belongs.',
-    price: 260,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'black',
@@ -716,7 +731,7 @@ export const seed: Product[] = [
     },
     description:
       'Oversized graphic drop in a rich burnt-sienna / rust tone. The "With GOD – All Things Are Possible" inscription in a bold editorial lockup.',
-    price: 270,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'rust',
@@ -737,7 +752,7 @@ export const seed: Product[] = [
     },
     description:
       'Two ash-grey tees with white lettering – a subtle, understated colourway for everyday faith wear.',
-    price: 250,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'ash',
@@ -758,7 +773,7 @@ export const seed: Product[] = [
       reference: 'Isaiah 1:18',
     },
     description: 'High-contrast white lettering on a deep crimson-red tee – faith front and center.',
-    price: 260,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'red',
@@ -779,7 +794,7 @@ export const seed: Product[] = [
     },
     description:
       'Two clean black-on-white graphic tees – one with a stroke accent. Minimalist faith wear at its finest.',
-    price: 250,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'white',
@@ -800,7 +815,7 @@ export const seed: Product[] = [
       reference: 'Colossians 3:12',
     },
     description: 'Classic ash grey tee with bold black lettering – understated everyday streetwear.',
-    price: 250,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'ash',
@@ -821,7 +836,7 @@ export const seed: Product[] = [
     },
     description:
       'Same clean graphic, three vivid stroke-accent colourways: cyan, red, and gold. A bold pop of colour on white.',
-    price: 260,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'cyan',
@@ -858,7 +873,7 @@ export const seed: Product[] = [
       reference: 'Psalm 45:11',
     },
     description: 'Rich gold lettering on white – a regal, premium statement piece.',
-    price: 270,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'gold',
@@ -879,7 +894,7 @@ export const seed: Product[] = [
     },
     description:
       'An intricate maze graphic on ash, layered over a deep black tee. Complex by design, clear in conviction.',
-    price: 260,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'ash',
@@ -899,7 +914,7 @@ export const seed: Product[] = [
       reference: 'Ephesians 2:10',
     },
     description: 'High quality graphic garment carrying an empowering message of purposeful living.',
-    price: 260,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'black',
@@ -919,7 +934,7 @@ export const seed: Product[] = [
       reference: 'Colossians 3:12',
     },
     description: 'A rich earth-brown garment with a bold faith graphic. Grounded in purpose.',
-    price: 260,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'brown',
@@ -940,7 +955,7 @@ export const seed: Product[] = [
     },
     description:
       'The Levush name in the CollegiateFLF typeface – a heritage-inspired graphic for the faith community.',
-    price: 250,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'black',
@@ -961,7 +976,7 @@ export const seed: Product[] = [
       reference: 'Isaiah 1:18',
     },
     description: 'Crisp white premium tee – the wardrobe essential for every faith-forward wardrobe.',
-    price: 240,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'white',
@@ -982,7 +997,7 @@ export const seed: Product[] = [
     },
     description:
       'Two ash-grey colourway variations for a clean, everyday faith tee. Subtle, premium, intentional.',
-    price: 250,
+    price: 70,
     tier: 'core',
     collection: 'Statement',
     defaultColor: 'ash',
@@ -1045,6 +1060,7 @@ export async function createProduct(input: Partial<Product>): Promise<Product> {
     isBestSeller: input.isBestSeller ?? false,
     isHidden: input.isHidden ?? false,
   };
+  product.soldOut = cleanSoldOut(input.soldOut, product.colorways, product.sizes);
   await db.collection(COLLECTION).doc(product.id).set(product);
   return product;
 }
@@ -1053,7 +1069,12 @@ export async function updateProduct(id: string, patch: Partial<Product>): Promis
   const ref = db.collection(COLLECTION).doc(id);
   const snap = await ref.get();
   if (!snap.exists) return null;
-  const next = { ...(snap.data() as Product), ...patch, id };
+  const next: Product = { ...(snap.data() as Product), ...patch, id };
+  // `null` from the editor means "remove the sale price".
+  if ((patch as { originalPrice?: number | null }).originalPrice === null || !(Number(next.originalPrice) > Number(next.price))) {
+    delete next.originalPrice;
+  }
+  next.soldOut = cleanSoldOut(next.soldOut, next.colorways ?? [], next.sizes ?? []);
   await ref.set(next);
   return next;
 }
@@ -1075,3 +1096,13 @@ export async function priceOf(productId: string): Promise<number | undefined> {
   return undefined;
 }
 
+
+/** Fetch several products in one round-trip (missing ids are omitted). */
+export async function getProductsByIds(ids: string[]): Promise<Map<string, Product>> {
+  const unique = [...new Set(ids)];
+  const out = new Map<string, Product>();
+  if (!unique.length) return out;
+  const snaps = await db.getAll(...unique.map((id) => db.collection(COLLECTION).doc(id)));
+  for (const s of snaps) if (s.exists) out.set(s.id, s.data() as Product);
+  return out;
+}

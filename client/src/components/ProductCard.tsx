@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Product } from '@/types';
 import { formatPrice, getDiscountInfo, toWebp } from '@/lib/format';
+import { productSoldOut } from '@/lib/stock';
 
 export default function ProductCard({ product, preferredColor }: { product: Product; preferredColor?: string }) {
   const matchingColor = preferredColor
@@ -9,7 +10,6 @@ export default function ProductCard({ product, preferredColor }: { product: Prod
     : undefined;
 
   const [selectedColor, setSelectedColor] = useState(matchingColor ?? product.defaultColor);
-  const [loaded, setLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
@@ -24,12 +24,13 @@ export default function ProductCard({ product, preferredColor }: { product: Prod
   const discount = getDiscountInfo(product);
 
   const mainImageUrl = toWebp(activeColorway.image);
-  const altImageUrl = altColorway ? toWebp(altColorway.image) : null;
+  const hoverImageUrl = product.modelImage ? toWebp(product.modelImage) : altColorway ? toWebp(altColorway.image) : null;
 
   return (
     <div
       className="group relative block"
       onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <div
         className="absolute -inset-1 rounded-3xl bg-gold/20 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100"
@@ -51,15 +52,17 @@ export default function ProductCard({ product, preferredColor }: { product: Prod
             className="h-full w-full object-cover transition-all duration-500 group-hover:scale-[1.04]"
           />
 
-          {altImageUrl && isHovered && (
+          {hoverImageUrl && isHovered && (
             <img
-              src={altImageUrl}
+              src={hoverImageUrl}
               alt=""
               aria-hidden
               loading="lazy"
               decoding="async"
               onError={(e) => {
-                if (altColorway?.image && !e.currentTarget.src.endsWith(altColorway.image)) {
+                if (product.modelImage && !e.currentTarget.src.endsWith(product.modelImage)) {
+                  e.currentTarget.src = product.modelImage;
+                } else if (altColorway?.image && !e.currentTarget.src.endsWith(altColorway.image)) {
                   e.currentTarget.src = altColorway.image;
                 }
               }}
@@ -69,6 +72,11 @@ export default function ProductCard({ product, preferredColor }: { product: Prod
 
           {/* Badges */}
           <div className="absolute left-3 top-3 flex flex-wrap gap-1.5 z-10">
+            {productSoldOut(product) && (
+              <span className="rounded-full bg-bone px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-ink shadow-lg">
+                Sold out
+              </span>
+            )}
             {discount.hasDiscount && (
               <span className="rounded-full bg-red-500/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-lg backdrop-blur">
                 -{discount.percent}% OFF

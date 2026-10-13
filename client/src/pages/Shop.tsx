@@ -5,6 +5,7 @@ import { useCatalog } from '@/context/CatalogContext';
 import ProductCard from '@/components/ProductCard';
 import Reveal from '@/components/Reveal';
 import { classNames, getDiscountInfo } from '@/lib/format';
+import { sizeAvailableAnyColor } from '@/lib/stock';
 
 // Fixed colour palette for the shop filter
 const COLOUR_PALETTE = [
@@ -110,8 +111,9 @@ export default function Shop() {
     }
 
     if (selectedSizes.size > 0) {
+      // Only count sizes that are actually in stock in at least one colour.
       list = list.filter((p) =>
-        (p.sizes ?? []).some((s) => selectedSizes.has(s.toUpperCase()))
+        (p.sizes ?? []).some((s) => selectedSizes.has(s.toUpperCase()) && sizeAvailableAnyColor(p, s))
       );
     }
 
@@ -153,6 +155,7 @@ export default function Shop() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search designs, verses, or drops..."
+            aria-label="Search products"
             className="w-full rounded-full border border-bone/20 bg-ink-800/80 px-5 py-3 pl-11 text-sm text-bone placeholder-bone/40 outline-none transition focus:border-gold focus:ring-1 focus:ring-gold"
           />
           <svg
@@ -192,7 +195,8 @@ export default function Shop() {
             </button>
           ))}
 
-          {/* On Sale Filter Tag */}
+          {/* On Sale Filter Tag — hidden until something is actually discounted */}
+          {(saleCount > 0 || active === 'On Sale') && (
           <button
             onClick={() => setCollection('On Sale')}
             className={classNames(
@@ -204,6 +208,7 @@ export default function Shop() {
           >
             🔥 On Sale {saleCount > 0 && `(${saleCount})`}
           </button>
+          )}
         </div>
 
         {/* Colour & Size Checkbox Panels */}
@@ -407,8 +412,22 @@ export default function Shop() {
 
       {visible.length === 0 && (
         <div className="py-20 text-center">
-          <p className="text-lg font-medium text-bone">No shirts match your selected filters.</p>
-          <p className="mt-2 text-sm text-bone/45">Try choosing a different colour or size.</p>
+          {active === 'On Sale' && saleCount === 0 ? (
+            <>
+              <p className="text-lg font-medium text-bone">Nothing on sale right now.</p>
+              <p className="mt-2 text-sm text-bone/45">Check back soon — or browse the full collection.</p>
+            </>
+          ) : searchQuery.trim() && selectedColors.size === 0 && selectedSizes.size === 0 ? (
+            <>
+              <p className="text-lg font-medium text-bone">No results for “{searchQuery.trim()}”.</p>
+              <p className="mt-2 text-sm text-bone/45">Try a design name or a verse, like “Psalm” or “Lion”.</p>
+            </>
+          ) : (
+            <>
+              <p className="text-lg font-medium text-bone">No shirts match your selected filters.</p>
+              <p className="mt-2 text-sm text-bone/45">Try choosing a different colour or size.</p>
+            </>
+          )}
           <button onClick={resetFilters} className="btn-outline mt-5">
             Reset all filters
           </button>

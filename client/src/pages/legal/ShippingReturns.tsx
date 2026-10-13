@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom';
+import { useStoreSettings } from '@/context/StoreSettingsContext';
+import { formatPrice } from '@/lib/format';
 
 export default function ShippingReturns() {
+  const { settings } = useStoreSettings();
   return (
     <div className="container-site py-16 max-w-3xl">
       <nav className="mb-8 text-sm text-bone/45">
@@ -18,8 +21,10 @@ export default function ShippingReturns() {
             All orders are processed within 1 to 3 business days (excluding weekends and holidays) after receiving your order confirmation email. You will receive another notification when your order has shipped.
           </p>
           <ul className="list-disc pl-5 space-y-2 text-bone/70">
-            <li><strong>Standard Delivery (Ghana):</strong> 2-4 business days. Cost: GH₵ 30.00</li>
-            <li><strong>Free Shipping:</strong> On all domestic orders over GH₵ 400.00</li>
+            <li><strong>Standard Delivery (Ghana):</strong> 2-4 business days. Cost: {formatPrice(settings.shippingFee)}</li>
+            {settings.freeShippingThreshold > 0 && (
+              <li><strong>Free Shipping:</strong> On all domestic orders over {formatPrice(settings.freeShippingThreshold)}</li>
+            )}
             <li><strong>International Shipping:</strong> We currently do not offer international shipping but are working to bring Levush to the world soon.</li>
           </ul>
         </section>

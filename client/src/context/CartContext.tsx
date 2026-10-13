@@ -9,12 +9,19 @@ import {
 } from 'react';
 import type { CartItem, ColorwayName, Product } from '@/types';
 import { productImage } from '@/lib/format';
+import { useCatalog } from '@/context/CatalogContext';
+import { useStoreSettings } from '@/context/StoreSettingsContext';
+import { isSoldOut } from '@/lib/stock';
 
 interface CartContextValue {
   items: CartItem[];
   count: number;
   subtotal: number;
   isOpen: boolean;
+  /** admin-configured max units per line item */
+  maxQty: number;
+  /** some line is sold out or no longer available; checkout must wait */
+  hasUnavailable: boolean;
   openCart: () => void;
   closeCart: () => void;
   addItem: (product: Product, color: ColorwayName, size: string, quantity?: number) => void;
@@ -35,13 +42,41 @@ function loadCart(): CartItem[] {
   }
 }
 
+// Data-URL images are huge; they'd blow through localStorage's quota. Store
+// only real URLs and resolve the rest from the catalogue at render time.
+const persistableImage = (src: string) => (src.startsWith('data:') ? '' : src);
+
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>(loadCart);
+  const { products, loading: catalogLoading } = useCatalog();
+  const { settings } = useStoreSettings();
+  const maxQty = settings.maxQtyPerItem;
+  const [stored, setItems] = useState<CartItem[]>(loadCart);
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  }, [items]);
+    const lean = stored.map(({ soldOut: _derived, ...i }) => ({ ...i, image: persistableImage(i.image) }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(lean));
+  }, [stored]);
+
+  const items = useMemo(
+    () =>
+      stored.map((i) => {
+        const product = products.find((p) => p.id === i.productId);
+        // Once the live catalogue has loaded, a missing product was removed or hidden.
+        if (!product) return catalogLoading ? i : { ...i, soldOut: true };
+        return {
+          ...i,
+          // keep the cart in step with the live catalogue price and limits
+          price: product.price,
+          quantity: Math.min(i.quantity, maxQty),
+          originalPrice: product.originalPrice,
+          image: i.image || productImage(product, i.color),
+          colorLabel: i.colorLabel ?? product.colorways.find((c) => c.name === i.color)?.label,
+          soldOut: isSoldOut(product, i.color, i.size),
+        };
+      }),
+    [stored, products, maxQty, catalogLoading]
+  );
 
   const addItem = useCallback(
     (product: Product, color: ColorwayName, size: string, quantity = 1) => {
@@ -50,7 +85,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const existing = prev.find((i) => i.id === lineId);
         if (existing) {
           return prev.map((i) =>
-            i.id === lineId ? { ...i, quantity: i.quantity + quantity } : i
+            i.id === lineId ? { ...i, quantity: Math.min(maxQty, i.quantity + quantity) } : i
           );
         }
         return [
@@ -60,17 +95,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
             productId: product.id,
             name: product.name,
             image: productImage(product, color),
+            colorLabel: product.colorways.find((c) => c.name === color)?.label,
             price: product.price,
             originalPrice: product.originalPrice,
             color,
             size,
-            quantity,
+            quantity: Math.min(maxQty, quantity),
           },
         ];
       });
       setIsOpen(true);
     },
-    []
+    [maxQty]
   );
 
   const removeItem = useCallback((lineId: string) => {
@@ -81,9 +117,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prev) =>
       quantity <= 0
         ? prev.filter((i) => i.id !== lineId)
-        : prev.map((i) => (i.id === lineId ? { ...i, quantity } : i))
+        : prev.map((i) => (i.id === lineId ? { ...i, quantity: Math.min(maxQty, quantity) } : i))
     );
-  }, []);
+  }, [maxQty]);
 
   const clear = useCallback(() => setItems([]), []);
 
@@ -95,6 +131,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       count,
       subtotal,
       isOpen,
+      maxQty,
+      hasUnavailable: items.some((i) => i.soldOut),
       openCart: () => setIsOpen(true),
       closeCart: () => setIsOpen(false),
       addItem,
@@ -102,7 +140,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setQuantity,
       clear,
     };
-  }, [items, isOpen, addItem, removeItem, setQuantity, clear]);
+  }, [items, isOpen, maxQty, addItem, removeItem, setQuantity, clear]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

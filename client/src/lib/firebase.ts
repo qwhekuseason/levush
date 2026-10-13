@@ -1,7 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyAQDMH437v8bgBC3JpJVgJ22yamTizslpY',
@@ -15,8 +13,6 @@ const firebaseConfig = {
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 export const firebaseEnabled = true;
 
@@ -24,7 +20,11 @@ export const firebaseEnabled = true;
  * Uploads a compressed image blob to Firebase Storage and returns its public CDN URL.
  */
 export async function uploadImageToStorage(blob: Blob, path: string): Promise<string> {
-  const storageRef = ref(storage, path);
+  // Loaded on demand: only admins upload, so shoppers never download the
+  // Storage SDK. (The site talks to Firestore only via the API, so the
+  // Firestore SDK isn't bundled at all.)
+  const { getStorage, ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+  const storageRef = ref(getStorage(app), path);
   const snapshot = await uploadBytes(storageRef, blob, {
     contentType: 'image/webp',
     cacheControl: 'public, max-age=31536000, immutable',

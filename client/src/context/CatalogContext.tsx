@@ -17,7 +17,8 @@ interface CatalogContextValue {
   loading: boolean;
   getProduct: (slug: string) => Product | undefined;
   getProductById: (id: string) => Product | undefined;
-  refresh: () => Promise<void>;
+  /** Re-fetch the catalogue; bypasses the CDN cache unless `fresh` is false. */
+  refresh: (fresh?: boolean) => Promise<void>;
 }
 
 const CatalogContext = createContext<CatalogContextValue | undefined>(undefined);
@@ -28,9 +29,9 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   const [allProducts, setAllProducts] = useState<Product[]>(seedProducts);
   const [loading, setLoading] = useState(true);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (fresh = true) => {
     try {
-      const list = await api.listProducts();
+      const list = await api.listProducts(fresh);
       if (Array.isArray(list) && list.length) {
         setAllProducts(list);
       }
@@ -42,7 +43,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void refresh();
+    void refresh(false);
   }, [refresh]);
 
   // Buyers never see hidden products

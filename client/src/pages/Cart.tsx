@@ -3,15 +3,16 @@ import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { MinusIcon, PlusIcon } from '@/components/icons';
 import { formatPrice, toWebp } from '@/lib/format';
-
-const FREE_SHIPPING_THRESHOLD = 400;
-const SHIPPING_FEE = 30;
+import { useStoreSettings } from '@/context/StoreSettingsContext';
 
 export default function Cart() {
-  const { items, subtotal, setQuantity, removeItem } = useCart();
+  const { items, subtotal, setQuantity, removeItem, maxQty, hasUnavailable } = useCart();
   const { user } = useAuth();
-  const shipping = subtotal === 0 || subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
+  const { settings, shippingFor } = useStoreSettings();
+  const shipping = shippingFor(subtotal);
   const total = subtotal + shipping;
+  const toFreeShipping =
+    settings.freeShippingThreshold > 0 && shipping > 0 ? settings.freeShippingThreshold - subtotal : 0;
 
   if (items.length === 0) {
     return (
@@ -32,13 +33,13 @@ export default function Cart() {
           {items.map((item) => (
             <li key={item.id} className="flex gap-4 sm:gap-5 py-6">
               <img
-                src={toWebp(item.image) || '/assets/hero-poster.webp'}
+                src={toWebp(item.image) || '/assets/Created_with_purpose.webp'}
                 alt={item.name}
                 loading="lazy"
                 decoding="async"
                 onError={(e) => {
                   e.currentTarget.onerror = null;
-                  e.currentTarget.src = '/assets/hero-poster.webp';
+                  e.currentTarget.src = '/assets/Created_with_purpose.webp';
                 }}
                 className="h-28 sm:h-32 w-24 sm:w-28 rounded-xl object-cover"
               />
@@ -47,8 +48,11 @@ export default function Cart() {
                   <div>
                     <p className="font-medium text-bone">{item.name}</p>
                     <p className="mt-1 text-xs uppercase tracking-wide text-bone/45">
-                      {item.color} · {item.size}
+                      {item.colorLabel ?? item.color} · {item.size}
                     </p>
+                    {item.soldOut && (
+                      <p className="mt-1 text-xs font-semibold text-red-500" role="alert">Sold out. Please remove to continue.</p>
+                    )}
                   </div>
                   <div className="text-right">
                     <p className="font-medium text-gold">{formatPrice(item.price * item.quantity)}</p>
@@ -65,7 +69,7 @@ export default function Cart() {
                       <MinusIcon width={15} height={15} />
                     </button>
                     <span className="w-5 text-center text-sm">{item.quantity}</span>
-                    <button onClick={() => setQuantity(item.id, item.quantity + 1)} aria-label="Increase" className="text-bone/70 hover:text-bone">
+                    <button onClick={() => setQuantity(item.id, item.quantity + 1)} disabled={item.quantity >= maxQty} aria-label="Increase" className="text-bone/70 hover:text-bone disabled:opacity-30 disabled:cursor-not-allowed">
                       <PlusIcon width={15} height={15} />
                     </button>
                   </div>
@@ -113,9 +117,21 @@ export default function Cart() {
               );
             })()}
 
-            <Link to="/checkout" className="btn-primary mt-5 w-full text-center py-4 text-lg">
-              Proceed to Checkout
-            </Link>
+            {toFreeShipping > 0 && (
+              <p className="mt-4 rounded-lg bg-gold/10 px-3 py-2 text-center text-xs text-gold">
+                Add {formatPrice(toFreeShipping)} more for free delivery
+              </p>
+            )}
+
+            {hasUnavailable ? (
+              <p className="mt-5 rounded-lg bg-red-500/10 px-4 py-3 text-center text-sm text-red-500">
+                Remove sold-out items to continue to checkout.
+              </p>
+            ) : (
+              <Link to="/checkout" className="btn-primary mt-5 w-full text-center py-4 text-lg">
+                Proceed to Checkout
+              </Link>
+            )}
             <p className="mt-3 text-center text-xs text-bone/40">
               {user ? `Signed in as ${user.email}` : 'Checkout as guest or sign in for order history.'}
             </p>
