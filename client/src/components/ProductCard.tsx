@@ -4,6 +4,7 @@ import type { Product } from '@/types';
 import { formatPrice, getDiscountInfo, toWebp } from '@/lib/format';
 import { productSoldOut } from '@/lib/stock';
 import SaveButton from '@/components/SaveButton';
+import { modelSrcSet } from '@/lib/img';
 
 export default function ProductCard({ product, preferredColor }: { product: Product; preferredColor?: string }) {
   const matchingColor = preferredColor
@@ -12,6 +13,8 @@ export default function ProductCard({ product, preferredColor }: { product: Prod
 
   const [selectedColor, setSelectedColor] = useState(matchingColor ?? product.defaultColor);
   const [isHovered, setIsHovered] = useState(false);
+  // Once a shopper picks a colour (or filters by one), show that shirt rather than the model photo.
+  const [pickedColour, setPickedColour] = useState(false);
 
   useEffect(() => {
     if (matchingColor) {
@@ -24,8 +27,13 @@ export default function ProductCard({ product, preferredColor }: { product: Prod
   const altColorway = product.colorways.find((c) => c.name !== activeColorway.name);
   const discount = getDiscountInfo(product);
 
-  const mainImageUrl = toWebp(activeColorway.image);
-  const hoverImageUrl = product.modelImage ? toWebp(product.modelImage) : altColorway ? toWebp(altColorway.image) : null;
+  // Studio model photo leads when we have one; the flat shirt shows on hover.
+  const showModel = Boolean(product.modelImage) && !pickedColour && !matchingColor;
+  const mainImageUrl = showModel ? toWebp(product.modelImage!) : toWebp(activeColorway.image);
+  const hoverImageUrl = showModel
+    ? toWebp(activeColorway.image)
+    : product.modelImage ? toWebp(product.modelImage) : altColorway ? toWebp(altColorway.image) : null;
+  const cardSizes = '(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw';
 
   return (
     <div
@@ -42,20 +50,25 @@ export default function ProductCard({ product, preferredColor }: { product: Prod
         <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-bone/5 bg-ink-700 transition-all duration-500 group-hover:border-gold/30">
           <img
             src={mainImageUrl}
-            alt={`${product.name} - ${activeColorway.label}`}
+            srcSet={showModel ? modelSrcSet(product.modelImage) : undefined}
+            sizes={cardSizes}
+            alt={showModel ? `${product.name} worn by a model` : `${product.name} - ${activeColorway.label}`}
             loading="lazy"
             decoding="async"
             onError={(e) => {
               if (activeColorway.image && !e.currentTarget.src.endsWith(activeColorway.image)) {
+                e.currentTarget.removeAttribute('srcset');
                 e.currentTarget.src = activeColorway.image;
               }
             }}
-            className="h-full w-full object-cover transition-all duration-500 group-hover:scale-[1.04]"
+            className={`h-full w-full object-cover transition-all duration-500 group-hover:scale-[1.04] ${showModel ? 'object-top' : ''}`}
           />
 
           {hoverImageUrl && isHovered && (
             <img
               src={hoverImageUrl}
+              srcSet={!showModel && product.modelImage ? modelSrcSet(product.modelImage) : undefined}
+              sizes={cardSizes}
               alt=""
               aria-hidden
               loading="lazy"
@@ -140,6 +153,7 @@ export default function ProductCard({ product, preferredColor }: { product: Prod
                   onClick={(e) => {
                     e.preventDefault();
                     setSelectedColor(c.name);
+                    setPickedColour(true);
                   }}
                   title={c.label}
                   className={`h-4 w-4 rounded-full border transition-all ${

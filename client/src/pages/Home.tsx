@@ -6,13 +6,42 @@ import { formatPrice } from '@/lib/format';
 import ProductCard from '@/components/ProductCard';
 import Reveal from '@/components/Reveal';
 import ShowcaseVideo from '@/components/ShowcaseVideo';
+import CinematicIntro from '@/components/CinematicIntro';
+import LightReveal from '@/components/LightReveal';
 import { ArrowRight, StarIcon } from '@/components/icons';
 import type { HomeSectionKey } from '@/types';
 
 export default function Home() {
   const { products } = useCatalog();
   const { settings } = useStoreSettings();
-  const { hero: heroText, featuredIds, sections } = settings.homepage;
+  const { hero: heroText, featuredIds, sections, intro, light } = settings.homepage;
+
+  // Opening-title photos: the studio model shots attached to products (light 640px copies).
+  const introImages = (() => {
+    const fromProducts = products
+      .map((p) => p.modelImage)
+      .filter((src): src is string => Boolean(src && /^\/assets\/models\/IMG_\d+\.webp$/.test(src)));
+    const fallback = ['IMG_2765', 'IMG_2761', 'IMG_2757', 'IMG_2772', 'IMG_2770', 'IMG_2763'].map((n) => `/assets/models/${n}.webp`);
+    const list = [...new Set([...fromProducts, ...fallback])].slice(0, 6);
+    return list.map((src) => src.replace(/\.webp$/, '-640.webp'));
+  })();
+
+  // "Light of the World" photo: the studio shot, or one of the chosen product's images.
+  const STUDIO = '/assets/models/IMG_2763.webp';
+  const lightProduct = products.find((p) => p.id === light.productId);
+  const lightImage = (() => {
+    const ref = light.imageRef;
+    if (ref === 'model' && lightProduct?.modelImage) return lightProduct.modelImage;
+    if (ref.startsWith('color:')) {
+      const c = lightProduct?.colorways.find((x) => x.name === ref.slice(6));
+      if (c?.image) return c.image;
+    }
+    if (ref.startsWith('gallery:')) {
+      const g = lightProduct?.gallery?.[Number(ref.slice(8))];
+      if (g) return g;
+    }
+    return STUDIO;
+  })();
 
   // "New & Noted": the admin's picks (in their order), else the first four pieces.
   const picked = featuredIds.map((id) => products.find((p) => p.id === id)).filter((p) => p !== undefined);
@@ -100,6 +129,16 @@ export default function Home() {
 
   // Every homepage section, keyed so the admin can reorder or hide them.
   const SECTIONS: Record<HomeSectionKey, JSX.Element> = {
+    light: (
+      <LightReveal
+        image={lightImage}
+        imageSmall={lightImage === STUDIO ? '/assets/models/IMG_2763-640.webp' : undefined}
+        verse={light.verse}
+        reference={light.reference}
+        productName={lightProduct?.name}
+        href={lightProduct ? `/shop/${lightProduct.slug}` : undefined}
+      />
+    ),
     marquee: (
       <>
       {/* ───────────── Verse marquee ───────────── */}
@@ -161,7 +200,8 @@ export default function Home() {
           {lookbookItems.map((item, idx) => (
             <Reveal key={item.id} delay={idx * 60} className="group relative">
               <Link
-                to={item.to}
+                // A tile whose product isn't in the catalogue (yet) goes to the shop, never a dead page.
+                to={products.some((p) => `/shop/${p.slug}` === item.to) ? item.to : '/shop'}
                 className="relative block aspect-[3/4] overflow-hidden rounded-2xl border border-bone/10 bg-ink-800 shadow-xl transition-all duration-500 group-hover:border-gold/40 group-hover:shadow-gold/10"
               >
                 <img
@@ -321,6 +361,15 @@ export default function Home() {
 
   return (
     <>
+      {intro.enabled && (
+        <CinematicIntro
+          word={intro.text}
+          tagline={intro.reference}
+          images={introImages}
+          fillImage="/assets/models/IMG_2765.webp"
+        />
+      )}
+
       {/* ───────────── Hero: headline + lookbook film ───────────── */}
       <section className="relative overflow-hidden md:min-h-[88vh] lg:min-h-[92vh]">
         <div className="grid md:min-h-[88vh] md:grid-cols-2 lg:min-h-[92vh]">

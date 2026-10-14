@@ -57,3 +57,4 @@ parsed_new_products.json
 .vercel
 .env*
 /*.mp4
+/Model/

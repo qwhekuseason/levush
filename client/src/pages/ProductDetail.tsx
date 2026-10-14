@@ -10,6 +10,7 @@ import { classNames, formatPrice, getDiscountInfo, productImage, toWebp } from '
 import type { ColorwayName } from '@/types';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { usePageTitle } from '@/lib/usePageTitle';
+import { modelSrcSet } from '@/lib/img';
 import { colorSoldOut, isSoldOut, productSoldOut } from '@/lib/stock';
 import { useWishlist } from '@/context/WishlistContext';
 import SaveButton from '@/components/SaveButton';
@@ -33,7 +34,10 @@ function ProductDetail({ slug }: { slug?: string }) {
   const maxQty = settings.maxQtyPerItem;
 
   const [selectedColor, setColor] = useState<ColorwayName>(product?.defaultColor ?? 'black');
-  const [activeImage, setActiveImage] = useState<string>(product ? productImage(product, product.defaultColor) : '');
+  // Open on the studio model photo when there is one; swatches switch to the shirts.
+  const [activeImage, setActiveImage] = useState<string>(
+    product ? (product.modelImage ? toWebp(product.modelImage) : productImage(product, product.defaultColor)) : ''
+  );
   const [size, setSize] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
@@ -135,6 +139,8 @@ function ProductDetail({ slug }: { slug?: string }) {
           <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-ink-700 border border-bone/10 shadow-2xl">
             <img
               src={currentDisplayedImage}
+              srcSet={modelSrcSet(currentDisplayedImage)}
+              sizes="(min-width: 1024px) 50vw, 100vw"
               alt={`${product.name} — ${colorLabel}`}
               {...{ fetchpriority: 'high' }}
               decoding="async"

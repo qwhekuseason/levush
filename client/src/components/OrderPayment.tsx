@@ -22,7 +22,7 @@ export const LAST_ORDER_KEY = 'levush.lastOrder.v1';
 
 function orderMessage(o: PlacedOrder): string {
   const lines = [
-    'Hello Levush! 👋 I just placed an order on the website.',
+    'Hello Levush! I just placed an order on the website.',
     '',
     `*Order ${o.id}*`,
     ...o.items.map(

@@ -10,7 +10,8 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
   ordersOpen: true,
   closedMessage: 'We’re taking a short break — orders will reopen soon.',
   announcement: { enabled: false, text: '', link: '' },
-  whatsappNumber: '',
+  // Business WhatsApp (also on the Contact page); admins can change it in Store Settings.
+  whatsappNumber: '233204874332',
   paymentAccounts: [],
   paymentNote: 'Use your order number as the payment reference, then send us your order on WhatsApp with a screenshot of the payment.',
   deliveryZones: [],
@@ -21,8 +22,19 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
       accent: 'You Believe',
       subtitle: 'Premium scripture streetwear, designed with intention. Every piece carries a word worth wearing.',
     },
+    intro: {
+      enabled: true,
+      text: 'LEVUSH',
+      reference: 'Faith, worn.',
+    },
+    light: {
+      productId: 'light-of-the-world',
+      imageRef: 'studio',
+      verse: 'You are the light of the world.',
+      reference: 'Matthew 5:14',
+    },
     featuredIds: [],
-    sections: (['marquee', 'featured', 'lookbook', 'collections', 'promise', 'testimonials', 'cta'] as const).map((key) => ({ key, visible: true })),
+    sections: (['marquee', 'light', 'featured', 'lookbook', 'collections', 'promise', 'testimonials', 'cta'] as const).map((key) => ({ key, visible: true })),
   },
 };
 
@@ -53,6 +65,8 @@ function withDefaults(s: Partial<StoreSettings> | null | undefined): StoreSettin
     deliveryZones: Array.isArray(s?.deliveryZones) ? s!.deliveryZones : [],
     homepage: {
       hero: { ...d.homepage.hero, ...(hp.hero ?? {}) },
+      intro: { ...d.homepage.intro, ...(hp.intro ?? {}) },
+      light: { ...d.homepage.light, ...(hp.light ?? {}) },
       featuredIds: Array.isArray(hp.featuredIds) ? hp.featuredIds : [],
       sections: Array.isArray(hp.sections) && hp.sections.length ? hp.sections : d.homepage.sections,
     },

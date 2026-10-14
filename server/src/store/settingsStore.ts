@@ -19,11 +19,18 @@ export interface DeliveryZone {
 }
 
 /** Homepage sections, in the order the admin arranges them. */
-export const HOME_SECTIONS = ['marquee', 'featured', 'lookbook', 'collections', 'promise', 'testimonials', 'cta'] as const;
+export const HOME_SECTIONS = ['marquee', 'light', 'featured', 'lookbook', 'collections', 'promise', 'testimonials', 'cta'] as const;
 export type HomeSectionKey = (typeof HOME_SECTIONS)[number];
+
+/** Which photo the "Light of the World" reveal shows. */
+export type LightImageRef = 'studio' | 'model' | `color:${string}` | `gallery:${number}`;
 
 export interface HomepageSettings {
   hero: { eyebrow: string; title: string; accent: string; subtitle: string };
+  /** cinematic opening title: a verse writes itself, then the letterbox opens */
+  intro: { enabled: boolean; text: string; reference: string };
+  /** "Light of the World" section: a spotlight reveals a photo and verse */
+  light: { productId: string; imageRef: LightImageRef; verse: string; reference: string };
   /** product ids for "New & Noted"; empty = newest 4 */
   featuredIds: string[];
   sections: Array<{ key: HomeSectionKey; visible: boolean }>;
@@ -63,6 +70,18 @@ export const DEFAULT_HOMEPAGE: HomepageSettings = {
     accent: 'You Believe',
     subtitle: 'Premium scripture streetwear, designed with intention. Every piece carries a word worth wearing.',
   },
+  // Opening title: `text` is the big word filled with photos, `reference` the line under it.
+  intro: {
+    enabled: true,
+    text: 'LEVUSH',
+    reference: 'Faith, worn.',
+  },
+  light: {
+    productId: 'light-of-the-world',
+    imageRef: 'studio',
+    verse: 'You are the light of the world.',
+    reference: 'Matthew 5:14',
+  },
   featuredIds: [],
   sections: HOME_SECTIONS.map((key) => ({ key, visible: true })),
 };
@@ -74,7 +93,8 @@ export const DEFAULT_SETTINGS: StoreSettings = {
   ordersOpen: true,
   closedMessage: 'We’re taking a short break — orders will reopen soon.',
   announcement: { enabled: false, text: '', link: '' },
-  whatsappNumber: '',
+  // Business WhatsApp (also on the Contact page); admins can change it in Store Settings.
+  whatsappNumber: '233204874332',
   paymentAccounts: [],
   paymentNote: 'Use your order number as the payment reference, then send us your order on WhatsApp with a screenshot of the payment.',
   deliveryZones: [],
@@ -89,9 +109,36 @@ function normalizeHomepage(raw: Partial<HomepageSettings> | undefined): Homepage
   const sections = (Array.isArray(raw?.sections) ? raw!.sections : [])
     .filter((x) => HOME_SECTIONS.includes(x?.key as HomeSectionKey) && !seen.has(x.key) && seen.add(x.key))
     .map((x) => ({ key: x.key, visible: x.visible !== false }));
-  for (const key of HOME_SECTIONS) if (!seen.has(key)) sections.push({ key, visible: true });
+  // Sections added in later versions slot in after their default neighbour,
+  // so an older saved layout gains them in a sensible place (not at the end).
+  HOME_SECTIONS.forEach((key, i) => {
+    if (seen.has(key)) return;
+    const prev = HOME_SECTIONS[i - 1];
+    const at = prev ? sections.findIndex((x) => x.key === prev) + 1 : 0;
+    sections.splice(at, 0, { key, visible: true });
+    seen.add(key);
+  });
   const featuredIds = Array.isArray(raw?.featuredIds) ? [...new Set(raw!.featuredIds.map(String))].slice(0, 8) : [];
-  return { hero, featuredIds, sections };
+  const intro = { ...DEFAULT_HOMEPAGE.intro, ...(raw?.intro ?? {}) };
+  const light = { ...DEFAULT_HOMEPAGE.light, ...(raw?.light ?? {}) };
+  const ref = String(light.imageRef ?? '');
+  const imageRef = (/^(studio|model|color:[\w-]{1,40}|gallery:\d{1,2})$/.test(ref) ? ref : 'studio') as LightImageRef;
+  return {
+    hero,
+    intro: {
+      enabled: intro.enabled !== false,
+      text: String(intro.text ?? '').slice(0, 160),
+      reference: String(intro.reference ?? '').slice(0, 40),
+    },
+    light: {
+      productId: String(light.productId ?? '').slice(0, 80),
+      imageRef,
+      verse: String(light.verse ?? '').slice(0, 120),
+      reference: String(light.reference ?? '').slice(0, 40),
+    },
+    featuredIds,
+    sections,
+  };
 }
 
 /** Normalise a phone number to WhatsApp's international digits form (Ghana-aware). */
@@ -186,6 +233,8 @@ export async function updateSettings(input: Partial<StoreSettings>): Promise<Sto
       accent: hpIn.hero.accent.slice(0, 30),
       subtitle: hpIn.hero.subtitle.slice(0, 200),
     },
+    intro: hpIn.intro,
+    light: hpIn.light,
     featuredIds: hpIn.featuredIds,
     sections: hpIn.sections,
   };
