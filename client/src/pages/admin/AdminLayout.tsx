@@ -6,8 +6,12 @@ const tabs = [
   { to: '/admin', label: 'Dashboard', end: true },
   { to: '/admin/products', label: 'Products' },
   { to: '/admin/orders', label: 'Orders' },
+  { to: '/admin/reports', label: 'Reports' },
   { to: '/admin/messages', label: 'Messages' },
+  { to: '/admin/reviews', label: 'Reviews' },
+  { to: '/admin/alerts', label: 'Restock Requests' },
   { to: '/admin/coupons', label: 'Coupons' },
+  { to: '/admin/homepage', label: 'Homepage' },
   { to: '/admin/settings', label: 'Store Settings' },
 ];
 
@@ -19,7 +23,7 @@ export default function AdminLayout() {
       <h1 className="heading-serif mb-8 text-4xl text-bone">Store management</h1>
 
       <div className="grid gap-8 lg:grid-cols-[200px_1fr]">
-        <nav className="flex gap-2 overflow-x-auto lg:flex-col lg:gap-1">
+        <nav aria-label="Admin sections" className="flex flex-wrap gap-1.5 lg:flex-col lg:flex-nowrap lg:gap-1">
           {tabs.map((t) => (
             <NavLink
               key={t.to}
@@ -27,7 +31,7 @@ export default function AdminLayout() {
               end={t.end}
               className={({ isActive }) =>
                 classNames(
-                  'whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium transition',
+                  'whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition sm:text-sm lg:px-4 lg:py-2.5',
                   isActive ? 'bg-gold text-ink' : 'text-bone/65 hover:bg-bone/5 hover:text-bone'
                 )
               }

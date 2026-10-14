@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useCatalog } from '@/context/CatalogContext';
 import { useCart } from '@/context/CartContext';
@@ -11,6 +11,11 @@ import type { ColorwayName } from '@/types';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { usePageTitle } from '@/lib/usePageTitle';
 import { colorSoldOut, isSoldOut, productSoldOut } from '@/lib/stock';
+import { useWishlist } from '@/context/WishlistContext';
+import SaveButton from '@/components/SaveButton';
+import ShareButton from '@/components/ShareButton';
+import NotifyMe from '@/components/NotifyMe';
+import ProductReviews from '@/components/ProductReviews';
 
 // Keyed by slug so moving between products (e.g. via "You may also like")
 // starts fresh instead of carrying over the previous piece's colour/size/image.
@@ -33,6 +38,13 @@ function ProductDetail({ slug }: { slug?: string }) {
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [sizeModalOpen, setSizeModalOpen] = useState(false);
+  // A sold-out size the shopper tapped: shows the "notify me" form for it.
+  const [alertSize, setAlertSize] = useState<string | null>(null);
+  const { recent, markViewed } = useWishlist();
+
+  useEffect(() => {
+    if (product) markViewed(product.id);
+  }, [product?.id, markViewed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync active image when color selection changes
   const handleColorChange = (newColor: ColorwayName) => {
@@ -95,6 +107,12 @@ function ProductDetail({ slug }: { slug?: string }) {
 
   const allSoldOut = productSoldOut(product);
   const thisColorSoldOut = colorSoldOut(product, color);
+
+  const recentlyViewed = recent
+    .filter((id) => id !== product.id)
+    .map((id) => products.find((p) => p.id === id))
+    .filter((p): p is NonNullable<typeof p> => Boolean(p))
+    .slice(0, 4);
 
   const handleAdd = () => {
     if (!size || isSoldOut(product, color, size)) return;
@@ -256,14 +274,22 @@ function ProductDetail({ slug }: { slug?: string }) {
                 return (
                   <button
                     key={s}
-                    onClick={() => !gone && setSize(s)}
-                    disabled={gone}
-                    aria-label={gone ? `${s} (sold out)` : s}
-                    title={gone ? 'Sold out' : undefined}
+                    onClick={() => {
+                      if (gone) {
+                        // Sold out: offer a back-in-stock alert instead of selecting it.
+                        setAlertSize(s);
+                        if (size === s) setSize('');
+                      } else {
+                        setSize(s);
+                        setAlertSize(null);
+                      }
+                    }}
+                    aria-label={gone ? `${s} (sold out — get notified)` : s}
+                    title={gone ? 'Sold out — tap to get notified' : undefined}
                     className={classNames(
                       'h-11 min-w-[3rem] rounded-lg border px-3 text-sm font-medium transition',
                       gone
-                        ? 'cursor-not-allowed border-bone/10 text-bone/30 line-through'
+                        ? 'border-dashed border-bone/20 text-bone/35 line-through hover:border-gold/50'
                         : size === s
                         ? 'border-gold bg-gold text-ink'
                         : 'border-bone/15 text-bone/75 hover:border-bone/40'
@@ -274,6 +300,19 @@ function ProductDetail({ slug }: { slug?: string }) {
                 );
               })}
             </div>
+            {product.sizes.some((s) => isSoldOut(product, color, s)) && !alertSize && (
+              <p className="mt-2 text-xs text-bone/45">Crossed-out sizes are sold out. Tap one to get a WhatsApp alert when it’s back.</p>
+            )}
+            {alertSize && isSoldOut(product, color, alertSize) && (
+              <NotifyMe
+                key={`${color}-${alertSize}`}
+                productId={product.id}
+                color={color}
+                colorLabel={colorLabel}
+                size={alertSize}
+                onClose={() => setAlertSize(null)}
+              />
+            )}
           </div>
 
           {/* Quantity */}
@@ -324,7 +363,15 @@ function ProductDetail({ slug }: { slug?: string }) {
                 'Select a size'
               )}
             </button>
-            <Link to="/cart" className="btn-outline">View Bag</Link>
+            <div className="flex gap-3">
+              <Link to="/cart" className="btn-outline flex-1 sm:flex-none">View Bag</Link>
+              <SaveButton productId={product.id} productName={product.name} className="h-12 w-12 shrink-0 border border-bone/20" size={20} />
+              <ShareButton
+                title={`${product.name} — Levush`}
+                text={`${product.name} · ${product.verse.reference}`}
+                url={`${window.location.origin}/shop/${product.slug}`}
+              />
+            </div>
           </div>
 
           <ul className="mt-8 space-y-2 border-t border-bone/10 pt-6 text-sm text-bone/55">
@@ -348,6 +395,19 @@ function ProductDetail({ slug }: { slug?: string }) {
           ))}
         </div>
       </section>
+
+      <ProductReviews productId={product.id} />
+
+      {recentlyViewed.length > 0 && (
+        <section className="mt-24">
+          <h2 className="heading-serif mb-8 text-2xl text-bone sm:text-3xl">Recently viewed</h2>
+          <div className="grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-4">
+            {recentlyViewed.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <SizeGuideModal 
         isOpen={sizeModalOpen} 

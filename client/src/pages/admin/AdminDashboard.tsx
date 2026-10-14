@@ -4,7 +4,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useCatalog } from '@/context/CatalogContext';
 import { api } from '@/lib/api';
 import { formatPrice } from '@/lib/format';
-import type { Order } from '@/types';
+import type { Order, StockAlert } from '@/types';
+import { isSoldOut } from '@/lib/stock';
 
 function SparkLine({ data, color = '#b8923a' }: { data: number[]; color?: string }) {
   if (data.length < 2) return null;
@@ -107,9 +108,10 @@ function RevenueChart({ orders }: { orders: Order[] }) {
 
 export default function AdminDashboard() {
   const { authHeader } = useAuth();
-  const { products } = useCatalog();
+  const { products, allProducts } = useCatalog();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [todo, setTodo] = useState<{ messages: number; reviews: number; alerts: StockAlert[] } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -119,6 +121,24 @@ export default function AdminDashboard() {
       } catch { /* ignore */ } finally {
         setLoaded(true);
       }
+    })();
+  }, [authHeader]);
+
+  // Things waiting on the admin (each list fails independently).
+  useEffect(() => {
+    (async () => {
+      const header = await authHeader();
+      if (!header) return;
+      const [messages, reviews, alerts] = await Promise.all([
+        api.listMessages(header).catch(() => []),
+        api.listReviews(header).catch(() => []),
+        api.listStockAlerts(header).catch(() => []),
+      ]);
+      setTodo({
+        messages: messages.filter((m) => !m.read).length,
+        reviews: reviews.filter((r) => r.status === 'pending').length,
+        alerts: alerts.filter((a) => !a.notified),
+      });
     })();
   }, [authHeader]);
 
@@ -161,8 +181,42 @@ export default function AdminDashboard() {
     { label: 'Products', value: products.length, sub: `${shipped} orders shipped`, to: '/admin/products', spark: null },
   ];
 
+  const awaitingCount = orders.filter((o) => o.status === 'received').length;
+  const backInStock = (todo?.alerts ?? []).filter((a) => {
+    const p = allProducts.find((x) => x.id === a.productId);
+    return p && !p.isHidden && !isSoldOut(p, a.color, a.size);
+  }).length;
+  const tasks = [
+    { n: awaitingCount, text: `order${awaitingCount === 1 ? '' : 's'} awaiting payment`, to: '/admin/orders' },
+    { n: todo?.messages ?? 0, text: `unread message${todo?.messages === 1 ? '' : 's'}`, to: '/admin/messages' },
+    { n: todo?.reviews ?? 0, text: `review${todo?.reviews === 1 ? '' : 's'} to approve`, to: '/admin/reviews' },
+    { n: backInStock, text: `customer${backInStock === 1 ? '' : 's'} to tell an item is back in stock`, to: '/admin/alerts' },
+  ].filter((t) => t.n > 0);
+
   return (
     <div className="space-y-8">
+      {/* Needs attention */}
+      {loaded && todo && (
+        <section className="card-surface p-5">
+          <h2 className="heading-serif mb-3 text-lg text-bone">Needs your attention</h2>
+          {tasks.length === 0 ? (
+            <p className="text-sm text-bone/55">All caught up. 🙌</p>
+          ) : (
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {tasks.map((t) => (
+                <li key={t.to}>
+                  <Link to={t.to} className="flex items-center gap-3 rounded-xl border border-bone/10 px-4 py-3 transition hover:border-gold/50">
+                    <span className="grid h-8 min-w-[2rem] place-items-center rounded-full bg-gold px-2 text-sm font-bold text-ink">{t.n}</span>
+                    <span className="text-sm text-bone">{t.text}</span>
+                    <span className="ml-auto text-gold">→</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
       {/* Stats cards */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((s) => (

@@ -11,8 +11,11 @@ export default function Cart() {
   const { items, subtotal, changeQuantity, removeItem, maxQty, hasUnavailable } = useCart();
   const { user } = useAuth();
   const { settings, shippingFor } = useStoreSettings();
-  const shipping = shippingFor(subtotal);
-  const total = subtotal + shipping;
+  // With delivery zones the fee depends on the option picked at checkout.
+  const zoneFees = settings.deliveryZones.map((z) => shippingFor(subtotal, z.id));
+  const hasZones = zoneFees.length > 0;
+  const shipping = hasZones ? Math.min(...zoneFees) : shippingFor(subtotal);
+  const total = subtotal + (hasZones ? 0 : shipping);
   const toFreeShipping =
     settings.freeShippingThreshold > 0 && shipping > 0 ? settings.freeShippingThreshold - subtotal : 0;
 
@@ -108,11 +111,15 @@ export default function Cart() {
                     <dd>{formatPrice(subtotal)}</dd>
                   </div>
                   <div className="flex justify-between text-bone/65">
-                    <dt>Shipping</dt>
-                    <dd>{shipping === 0 ? 'Free' : formatPrice(shipping)}</dd>
+                    <dt>Delivery</dt>
+                    <dd>
+                      {hasZones && Math.max(...zoneFees) > 0
+                        ? shipping === 0 ? `Free to ${formatPrice(Math.max(...zoneFees))}` : `From ${formatPrice(shipping)}`
+                        : shipping === 0 ? 'Free' : formatPrice(shipping)}
+                    </dd>
                   </div>
                   <div className="flex justify-between border-t border-bone/10 pt-3 text-base font-medium text-bone">
-                    <dt>Total</dt>
+                    <dt>Total{hasZones && Math.max(...zoneFees) > 0 ? ' (before delivery)' : ''}</dt>
                     <dd className="font-serif text-xl">{formatPrice(total)}</dd>
                   </div>
                 </dl>

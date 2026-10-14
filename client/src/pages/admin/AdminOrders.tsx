@@ -4,6 +4,7 @@ import { api } from '@/lib/api';
 import { classNames, formatPrice } from '@/lib/format';
 import type { Order, OrderStatus } from '@/types';
 import { whatsappLink } from '@/lib/whatsapp';
+import { downloadCsv, ordersToCsv } from '@/lib/csv';
 
 const ALL_STATUSES: Array<OrderStatus | 'all'> = ['all', 'received', 'paid', 'shipped', 'cancelled'];
 
@@ -109,9 +110,19 @@ export default function AdminOrders() {
           <h2 className="heading-serif text-2xl text-bone">Order Management ({orders.length})</h2>
           <p className="text-xs text-bone/50">View, track, and update complete order details in real-time</p>
         </div>
+        <button
+          type="button"
+          onClick={() => downloadCsv(`levush-orders-${new Date().toISOString().slice(0, 10)}.csv`, ordersToCsv(filtered))}
+          disabled={!filtered.length}
+          className="btn-outline text-xs disabled:opacity-40"
+          title="Download the orders currently shown as a spreadsheet"
+        >
+          Download CSV ({filtered.length})
+        </button>
         <input
           className="field max-w-xs text-sm"
           placeholder="Search by ID, email, name, phone, city..."
+          aria-label="Search orders"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -246,6 +257,11 @@ export default function AdminOrders() {
                           <>
                             <p className="text-sm text-bone font-medium">{addr.address}</p>
                             <p className="text-xs text-bone/70 mt-1">{addr.city}</p>
+                            {o.delivery && (
+                              <p className="mt-2 text-xs text-bone/70">
+                                Option: <span className="font-semibold text-bone">{o.delivery.name}</span>{o.delivery.eta ? ` · ${o.delivery.eta}` : ''}
+                              </p>
+                            )}
                           </>
                         ) : (
                           <p className="text-xs text-bone/45 italic">No address recorded</p>

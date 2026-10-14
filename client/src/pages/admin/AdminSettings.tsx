@@ -4,7 +4,7 @@ import { useStoreSettings } from '@/context/StoreSettingsContext';
 import { api } from '@/lib/api';
 import { formatPrice } from '@/lib/format';
 import { formatPhone, whatsappLink } from '@/lib/whatsapp';
-import type { PaymentAccount, StoreSettings } from '@/types';
+import type { DeliveryZone, PaymentAccount, StoreSettings } from '@/types';
 
 export default function AdminSettings() {
   const { authHeader } = useAuth();
@@ -34,6 +34,14 @@ export default function AdminSettings() {
       'paymentAccounts',
       form.paymentAccounts.map((a, j) => (j === i ? { ...a, ...patch } : a))
     );
+
+  const setZone = (i: number, patch: Partial<DeliveryZone>) =>
+    set('deliveryZones', form.deliveryZones.map((z, j) => (j === i ? { ...z, ...patch } : z)));
+  const moveZone = (i: number, dir: -1 | 1) => {
+    const next = [...form.deliveryZones];
+    [next[i], next[i + dir]] = [next[i + dir], next[i]];
+    set('deliveryZones', next);
+  };
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -239,7 +247,37 @@ export default function AdminSettings() {
           {form.freeShippingThreshold > 0
             ? `Orders under ${formatPrice(form.freeShippingThreshold)} pay ${formatPrice(form.shippingFee)} delivery; above that it's free.`
             : `Every order pays ${formatPrice(form.shippingFee)} delivery.`}
+          {form.deliveryZones.length > 0 && ' With delivery options below, each option’s fee replaces the flat fee.'}
         </p>
+
+        <div className="mt-6 border-t border-bone/10 pt-5">
+          <p className="text-sm font-medium text-bone">Delivery options by area</p>
+          <p className="mb-3 mt-1 text-xs text-bone/45">
+            Optional. Customers pick one at checkout, e.g. Accra GH₵25 · Kumasi GH₵45 · Other regions GH₵60 · Pickup free.
+          </p>
+          <div className="space-y-2">
+            {form.deliveryZones.map((z, i) => (
+              <div key={i} className="grid gap-2 rounded-xl border border-bone/10 p-3 sm:grid-cols-[1.4fr_0.8fr_1fr_auto] sm:items-center">
+                <input className="field" placeholder="Name, e.g. Accra" aria-label={`Option ${i + 1} name`} value={z.name} maxLength={40}
+                  onChange={(e) => setZone(i, { name: e.target.value })} />
+                <input className="field" type="number" min={0} step="any" placeholder="Fee GH₵" aria-label={`Option ${i + 1} fee`} value={Number.isFinite(z.fee) ? z.fee : ''}
+                  onChange={(e) => setZone(i, { fee: e.target.value === '' ? NaN : Number(e.target.value) })} />
+                <input className="field" placeholder="Time, e.g. 1–2 days" aria-label={`Option ${i + 1} delivery time`} value={z.eta} maxLength={40}
+                  onChange={(e) => setZone(i, { eta: e.target.value })} />
+                <div className="flex items-center gap-2 text-xs">
+                  <button type="button" disabled={i === 0} onClick={() => moveZone(i, -1)} className="px-1 text-bone/50 hover:text-bone disabled:opacity-30" aria-label="Move up">↑</button>
+                  <button type="button" disabled={i === form.deliveryZones.length - 1} onClick={() => moveZone(i, 1)} className="px-1 text-bone/50 hover:text-bone disabled:opacity-30" aria-label="Move down">↓</button>
+                  <button type="button" onClick={() => set('deliveryZones', form.deliveryZones.filter((_, j) => j !== i))} className="px-1 text-red-400 hover:text-red-300">Remove</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          {form.deliveryZones.length < 12 && (
+            <button type="button" onClick={() => set('deliveryZones', [...form.deliveryZones, { id: '', name: '', fee: NaN, eta: '' }])} className="btn-outline mt-3 text-xs">
+              + Add delivery option
+            </button>
+          )}
+        </div>
       </section>
 
       {/* Announcement */}

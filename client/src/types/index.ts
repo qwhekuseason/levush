@@ -125,6 +125,7 @@ export interface Order {
   status: OrderStatus;
   statusHistory?: Array<{ status: OrderStatus; at: number }>;
   customerNote?: string;
+  delivery?: { id: string; name: string; eta: string };
   createdAt: number;
 }
 
@@ -144,12 +145,13 @@ export interface TrackedOrder {
   id: string;
   status: OrderStatus;
   statusHistory: Array<{ status: OrderStatus; at: number }>;
-  items: Array<{ name: string; color?: string; size?: string; quantity: number; price: number }>;
+  items: Array<{ productId: string; name: string; color?: string; size?: string; quantity: number; price: number }>;
   subtotal: number;
   discount: number;
   shipping: number;
   total: number;
   city: string;
+  delivery: string;
   customerNote: string;
   createdAt: number;
 }
@@ -197,6 +199,52 @@ export interface PaymentAccount {
   name: string;
 }
 
+export interface DeliveryZone {
+  id: string;
+  name: string;
+  fee: number;
+  eta: string;
+}
+
+export type HomeSectionKey = 'marquee' | 'featured' | 'lookbook' | 'collections' | 'promise' | 'testimonials' | 'cta';
+
+export interface HomepageSettings {
+  hero: { eyebrow: string; title: string; accent: string; subtitle: string };
+  featuredIds: string[];
+  sections: Array<{ key: HomeSectionKey; visible: boolean }>;
+}
+
+export interface StockAlert {
+  id: string;
+  productId: string;
+  productName: string;
+  color: string;
+  colorLabel: string;
+  size: string;
+  phone: string;
+  name: string;
+  notified: boolean;
+  createdAt: number;
+  notifiedAt?: number;
+}
+
+export type ReviewStatus = 'pending' | 'approved' | 'rejected';
+
+export interface Review {
+  id: string;
+  productId: string;
+  productName: string;
+  orderId: string;
+  name: string;
+  city: string;
+  rating: number;
+  text: string;
+  status: ReviewStatus;
+  createdAt: number;
+}
+
+export type PublicReview = Pick<Review, 'id' | 'name' | 'city' | 'rating' | 'text' | 'createdAt'>;
+
 export interface StoreSettings {
   shippingFee: number;
   freeShippingThreshold: number;
@@ -208,4 +256,6 @@ export interface StoreSettings {
   whatsappNumber: string;
   paymentAccounts: PaymentAccount[];
   paymentNote: string;
+  deliveryZones: DeliveryZone[];
+  homepage: HomepageSettings;
 }

@@ -69,10 +69,15 @@ export default function Checkout() {
     api.publicCoupons().then(setOffers).catch(() => setOffers([]));
   }, []);
 
-  const baseShipping = shippingFor(subtotal);
+  const zones = settings.deliveryZones;
+  const [zoneId, setZoneId] = useState<string>('');
+  const zone = zones.find((z) => z.id === zoneId);
+  const needsZone = zones.length > 0 && !zone;
+  const baseShipping = shippingFor(subtotal, zoneId);
   const couponMeetsMinimum = !couponApplied || subtotal >= couponApplied.minSubtotal;
   const freeShippingPromo = couponApplied?.kind === 'shipping' && couponMeetsMinimum;
-  const shipping = freeShippingPromo ? 0 : baseShipping;
+  // Until a delivery option is chosen, show the total before delivery.
+  const shipping = freeShippingPromo || needsZone ? 0 : baseShipping;
   const discount = couponApplied ? couponDiscount(couponApplied, subtotal) : 0;
   const total = Math.max(0, subtotal - discount) + shipping;
 
@@ -114,6 +119,11 @@ export default function Checkout() {
       setError(settings.closedMessage);
       return;
     }
+    if (needsZone) {
+      setError('Please choose a delivery option.');
+      document.getElementById('delivery-options')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
 
     setPlacing(true);
     try {
@@ -122,6 +132,7 @@ export default function Checkout() {
         {
           email,
           couponCode: couponApplied?.code ?? null,
+          deliveryZoneId: zone?.id ?? null,
           shippingAddress: {
             firstName,
             lastName,
@@ -158,6 +169,7 @@ export default function Checkout() {
         shipping: res.shipping,
         total: res.total,
         customer: { firstName, lastName, phone, email, address, city },
+        delivery: zone ? `${zone.name}${zone.eta ? `, ${zone.eta}` : ''}` : undefined,
       };
       try {
         sessionStorage.setItem(LAST_ORDER_KEY, JSON.stringify(order));
@@ -309,6 +321,39 @@ export default function Checkout() {
                 />
               </div>
             </div>
+
+            {zones.length > 0 && (
+              <fieldset id="delivery-options" className="mt-7">
+                <legend className="mb-3 text-sm font-medium text-bone/80">Delivery option *</legend>
+                <div className="grid gap-2.5 sm:grid-cols-2">
+                  {zones.map((z) => {
+                    const fee = shippingFor(subtotal, z.id);
+                    return (
+                      <label
+                        key={z.id}
+                        className={`flex cursor-pointer items-center justify-between gap-3 rounded-xl border p-3.5 transition-colors ${zoneId === z.id ? 'border-gold bg-gold/5' : 'border-bone/10 hover:border-bone/30'}`}
+                      >
+                        <span className="flex items-center gap-3">
+                          <input
+                            type="radio"
+                            name="delivery-zone"
+                            value={z.id}
+                            checked={zoneId === z.id}
+                            onChange={() => setZoneId(z.id)}
+                            className="h-4 w-4 accent-gold"
+                          />
+                          <span>
+                            <span className="block text-sm font-medium text-bone">{z.name}</span>
+                            {z.eta && <span className="block text-xs text-bone/50">{z.eta}</span>}
+                          </span>
+                        </span>
+                        <span className="text-sm font-semibold text-bone">{fee === 0 ? 'Free' : formatPrice(fee)}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            )}
           </section>
 
           {/* Payment */}
@@ -482,11 +527,11 @@ export default function Checkout() {
                 </div>
               )}
               <div className="flex justify-between text-bone/65">
-                <dt>Shipping</dt>
-                <dd>{shipping === 0 ? 'Free' : formatPrice(shipping)}</dd>
+                <dt>Delivery{zone ? ` · ${zone.name}` : ''}</dt>
+                <dd>{needsZone && baseShipping > 0 ? 'Choose option' : shipping === 0 ? 'Free' : formatPrice(shipping)}</dd>
               </div>
               <div className="flex justify-between border-t border-bone/10 pt-4 mt-4 text-base font-medium text-bone">
-                <dt>Total</dt>
+                <dt>Total{needsZone && baseShipping > 0 && !freeShippingPromo ? ' (before delivery)' : ''}</dt>
                 <dd className="font-serif text-xl text-gold">{formatPrice(total)}</dd>
               </div>
             </dl>

@@ -5,6 +5,7 @@ import { classNames, formatPrice } from '@/lib/format';
 import { getRecentOrders, type RecentOrder } from '@/lib/recentOrders';
 import { whatsappLink } from '@/lib/whatsapp';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
+import OrderReviews from '@/components/OrderReviews';
 import type { OrderStatus, TrackedOrder } from '@/types';
 import { usePageTitle } from '@/lib/usePageTitle';
 
@@ -163,7 +164,7 @@ export default function TrackOrder() {
           <section className="card-surface p-6">
             <div className="mb-6 flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="font-mono text-lg font-bold text-gold">{order.id}</h2>
-              <p className="text-xs text-bone/45">Placed {fmt(order.createdAt)}{order.city ? ` · delivering to ${order.city}` : ''}</p>
+              <p className="text-xs text-bone/45">Placed {fmt(order.createdAt)}{order.city ? ` · delivering to ${order.city}` : ''}{order.delivery ? ` · ${order.delivery}` : ''}</p>
             </div>
             <Timeline order={order} />
           </section>
@@ -195,6 +196,8 @@ export default function TrackOrder() {
               <div className="flex justify-between font-medium text-bone"><dt>Total</dt><dd>{formatPrice(order.total)}</dd></div>
             </dl>
           </section>
+
+          <OrderReviews order={order} phone={phone} />
 
           {settings.whatsappNumber && (
             <a

@@ -19,6 +19,7 @@ const SignUp = lazy(() => import('@/pages/SignUp'));
 const Settings = lazy(() => import('@/pages/Settings'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 const TrackOrder = lazy(() => import('@/pages/TrackOrder'));
+const Saved = lazy(() => import('@/pages/Saved'));
 
 // Legal pages
 const ShippingReturns = lazy(() => import('@/pages/legal/ShippingReturns'));
@@ -33,6 +34,10 @@ const AdminOrders = lazy(() => import('@/pages/admin/AdminOrders'));
 const AdminCoupons = lazy(() => import('@/pages/admin/AdminCoupons'));
 const AdminSettings = lazy(() => import('@/pages/admin/AdminSettings'));
 const AdminMessages = lazy(() => import('@/pages/admin/AdminMessages'));
+const AdminReports = lazy(() => import('@/pages/admin/AdminReports'));
+const AdminReviews = lazy(() => import('@/pages/admin/AdminReviews'));
+const AdminAlerts = lazy(() => import('@/pages/admin/AdminAlerts'));
+const AdminHomepage = lazy(() => import('@/pages/admin/AdminHomepage'));
 
 function PageLoader() {
   return (
@@ -68,6 +73,7 @@ export default function App() {
                 <Route path="signup" element={<SignUp />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="track" element={<TrackOrder />} />
+                <Route path="saved" element={<Saved />} />
 
                 {/* Legal Pages */}
                 <Route path="policies/shipping-returns" element={<ShippingReturns />} />
@@ -89,6 +95,10 @@ export default function App() {
                   <Route path="coupons" element={<AdminCoupons />} />
                   <Route path="settings" element={<AdminSettings />} />
                   <Route path="messages" element={<AdminMessages />} />
+                  <Route path="reports" element={<AdminReports />} />
+                  <Route path="reviews" element={<AdminReviews />} />
+                  <Route path="alerts" element={<AdminAlerts />} />
+                  <Route path="homepage" element={<AdminHomepage />} />
                 </Route>
 
                 <Route path="*" element={<NotFound />} />

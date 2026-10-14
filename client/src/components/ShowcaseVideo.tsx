@@ -32,13 +32,16 @@ function shouldAutoplay(): boolean {
  * Lookbook film. Picks the right cut for the screen, only downloads once it's
  * near the viewport, and plays only while visible.
  */
-export default function ShowcaseVideo({ className }: { className?: string }) {
+export default function ShowcaseVideo({ className, hero = false }: { className?: string; hero?: boolean }) {
   const isDesktop = useIsDesktop();
   const variant = isDesktop ? VARIANTS.desktop : VARIANTS.mobile;
+  // In the hero the video is above the fold, so load it straight away and fit
+  // the whole edit (its baked-in text) inside the column instead of cropping.
+  const fitWhole = hero && isDesktop;
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [nearViewport, setNearViewport] = useState(false);
+  const [nearViewport, setNearViewport] = useState(hero);
   const [visible, setVisible] = useState(false);
   const [autoplay] = useState(shouldAutoplay);
   // null = follow autoplay preference; true/false = the visitor chose.
@@ -79,17 +82,24 @@ export default function ShowcaseVideo({ className }: { className?: string }) {
   }, [visible, wantsPlay, nearViewport, variant.src]);
 
   return (
-    <div ref={wrapRef} className={classNames('relative overflow-hidden rounded-2xl bg-ink-700', variant.aspect, className)}>
+    <div
+      ref={wrapRef}
+      className={classNames('relative overflow-hidden bg-ink-700', fitWhole ? 'h-full w-full' : variant.aspect, !hero && 'rounded-2xl', className)}
+    >
+      {fitWhole && (
+        // Soft backdrop from the poster fills the space around the letterboxed video.
+        <img src={variant.poster} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-2xl" />
+      )}
       <video
         key={variant.src}
         ref={videoRef}
-        className="absolute inset-0 h-full w-full object-cover"
+        className={classNames('absolute inset-0 h-full w-full', fitWhole ? 'object-contain' : 'object-cover')}
         poster={variant.poster}
         src={nearViewport ? variant.src : undefined}
         muted
         loop
         playsInline
-        preload="none"
+        preload={hero ? 'metadata' : 'none'}
         aria-label="Levush collection lookbook film"
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}

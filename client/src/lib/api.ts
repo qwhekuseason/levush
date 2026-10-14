@@ -9,6 +9,10 @@ import type {
   StoreSettings,
   TrackedOrder,
   ContactMessage,
+  PublicReview,
+  Review,
+  ReviewStatus,
+  StockAlert,
 } from '@/types';
 
 const BASE = '/api';
@@ -60,6 +64,7 @@ export const api = {
       shippingAddress?: { firstName: string; lastName: string; address: string; city: string; phone: string };
       paymentMethod?: string;
       couponCode?: string | null;
+      deliveryZoneId?: string | null;
     },
     auth?: string | null
   ) =>
@@ -108,6 +113,28 @@ export const api = {
     request<ContactMessage>(`/messages/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ read }) }, auth),
   deleteMessage: (id: string, auth: string) =>
     request<{ deleted: boolean }>(`/messages/${encodeURIComponent(id)}`, { method: 'DELETE' }, auth),
+
+  // Back-in-stock alerts
+  requestStockAlert: (data: { productId: string; color: string; size: string; phone: string; name?: string }) =>
+    request<{ ok: true }>('/stock-alerts', { method: 'POST', body: JSON.stringify(data) }),
+  listStockAlerts: (auth: string) => request<StockAlert[]>('/stock-alerts', {}, auth),
+  markStockAlert: (id: string, notified: boolean, auth: string) =>
+    request<StockAlert>(`/stock-alerts/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ notified }) }, auth),
+  deleteStockAlert: (id: string, auth: string) =>
+    request<{ deleted: boolean }>(`/stock-alerts/${encodeURIComponent(id)}`, { method: 'DELETE' }, auth),
+
+  // Reviews
+  productReviews: (productId: string) =>
+    request<{ reviews: PublicReview[]; average: number; count: number }>(`/reviews?productId=${encodeURIComponent(productId)}`),
+  reviewStatus: (orderId: string, phone: string) =>
+    request<{ canReview: boolean; reviewed: string[] }>('/reviews/status', { method: 'POST', body: JSON.stringify({ orderId, phone }) }),
+  submitReview: (data: { orderId: string; phone: string; productId: string; rating: number; text: string }) =>
+    request<{ ok: true }>('/reviews', { method: 'POST', body: JSON.stringify(data) }),
+  listReviews: (auth: string) => request<Review[]>('/reviews/all', {}, auth),
+  setReviewStatus: (id: string, status: ReviewStatus, auth: string) =>
+    request<Review>(`/reviews/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ status }) }, auth),
+  deleteReview: (id: string, auth: string) =>
+    request<{ deleted: boolean }>(`/reviews/${encodeURIComponent(id)}`, { method: 'DELETE' }, auth),
 
   // Store settings
   getSettings: (fresh = false) => request<StoreSettings>(fresh ? `/settings?fresh=${Date.now()}` : '/settings'),

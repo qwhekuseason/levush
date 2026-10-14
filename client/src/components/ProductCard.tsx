@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import type { Product } from '@/types';
 import { formatPrice, getDiscountInfo, toWebp } from '@/lib/format';
 import { productSoldOut } from '@/lib/stock';
+import SaveButton from '@/components/SaveButton';
 
 export default function ProductCard({ product, preferredColor }: { product: Product; preferredColor?: string }) {
   const matchingColor = preferredColor
@@ -96,7 +97,7 @@ export default function ProductCard({ product, preferredColor }: { product: Prod
 
           {/* Colour count badge */}
           {product.colorways.length > 1 && (
-            <div className="absolute right-3 top-3 z-10">
+            <div className="absolute right-14 top-3.5 z-10">
               <span className="rounded-full border border-bone/20 bg-ink-900/80 px-2.5 py-1 text-[10px] font-semibold text-bone/80 backdrop-blur-md shadow-md">
                 {product.colorways.length} Colours
               </span>
@@ -110,6 +111,13 @@ export default function ProductCard({ product, preferredColor }: { product: Prod
           </div>
         </div>
       </Link>
+
+      {/* Save — outside the link so it's its own control, positioned over the image corner */}
+      <SaveButton
+        productId={product.id}
+        productName={product.name}
+        className="absolute right-3 top-3 z-20 h-9 w-9 bg-ink/85 shadow-md backdrop-blur"
+      />
 
       {/* Info & Swatches */}
       <div className="mt-4 flex items-start justify-between gap-3">

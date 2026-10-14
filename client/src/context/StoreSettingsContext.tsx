@@ -13,12 +13,23 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
   whatsappNumber: '',
   paymentAccounts: [],
   paymentNote: 'Use your order number as the payment reference, then send us your order on WhatsApp with a screenshot of the payment.',
+  deliveryZones: [],
+  homepage: {
+    hero: {
+      eyebrow: 'Faith, worn.',
+      title: 'Wear What',
+      accent: 'You Believe',
+      subtitle: 'Premium scripture streetwear, designed with intention. Every piece carries a word worth wearing.',
+    },
+    featuredIds: [],
+    sections: (['marquee', 'featured', 'lookbook', 'collections', 'promise', 'testimonials', 'cta'] as const).map((key) => ({ key, visible: true })),
+  },
 };
 
 interface StoreSettingsValue {
   settings: StoreSettings;
-  /** shipping owed on `subtotal` before any coupon */
-  shippingFor: (subtotal: number) => number;
+  /** shipping owed on `subtotal` before any coupon (for the chosen delivery zone, if any) */
+  shippingFor: (subtotal: number, zoneId?: string | null) => number;
   refresh: (fresh?: boolean) => Promise<void>;
   /** apply a just-saved settings object immediately (admin screen) */
   setSettings: (s: StoreSettings) => void;
@@ -27,10 +38,31 @@ interface StoreSettingsValue {
 const StoreSettingsContext = createContext<StoreSettingsValue | undefined>(undefined);
 const CACHE_KEY = 'levush.settings.v1';
 
+/**
+ * Fill any missing pieces with defaults, so an older cached copy or a partial
+ * response can never leave the site reading `undefined`.
+ */
+function withDefaults(s: Partial<StoreSettings> | null | undefined): StoreSettings {
+  const d = DEFAULT_STORE_SETTINGS;
+  const hp: Partial<StoreSettings['homepage']> = s?.homepage ?? {};
+  return {
+    ...d,
+    ...s,
+    announcement: { ...d.announcement, ...(s?.announcement ?? {}) },
+    paymentAccounts: Array.isArray(s?.paymentAccounts) ? s!.paymentAccounts : [],
+    deliveryZones: Array.isArray(s?.deliveryZones) ? s!.deliveryZones : [],
+    homepage: {
+      hero: { ...d.homepage.hero, ...(hp.hero ?? {}) },
+      featuredIds: Array.isArray(hp.featuredIds) ? hp.featuredIds : [],
+      sections: Array.isArray(hp.sections) && hp.sections.length ? hp.sections : d.homepage.sections,
+    },
+  };
+}
+
 function cached(): StoreSettings {
   try {
     const raw = localStorage.getItem(CACHE_KEY);
-    return raw ? { ...DEFAULT_STORE_SETTINGS, ...JSON.parse(raw) } : DEFAULT_STORE_SETTINGS;
+    return withDefaults(raw ? JSON.parse(raw) : null);
   } catch {
     return DEFAULT_STORE_SETTINGS;
   }
@@ -39,7 +71,8 @@ function cached(): StoreSettings {
 export function StoreSettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setState] = useState<StoreSettings>(cached);
 
-  const setSettings = useCallback((s: StoreSettings) => {
+  const setSettings = useCallback((incoming: StoreSettings) => {
+    const s = withDefaults(incoming);
     setState(s);
     try {
       localStorage.setItem(CACHE_KEY, JSON.stringify(s));
@@ -66,10 +99,10 @@ export function StoreSettingsProvider({ children }: { children: ReactNode }) {
   const value = useMemo<StoreSettingsValue>(
     () => ({
       settings,
-      shippingFor: (subtotal) =>
+      shippingFor: (subtotal, zoneId) =>
         subtotal <= 0 || (settings.freeShippingThreshold > 0 && subtotal >= settings.freeShippingThreshold)
           ? 0
-          : settings.shippingFee,
+          : settings.deliveryZones.find((z) => z.id === zoneId)?.fee ?? settings.shippingFee,
       refresh,
       setSettings,
     }),

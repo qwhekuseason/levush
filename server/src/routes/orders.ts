@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { requireAdmin, resolveCaller } from '../lib/auth.js';
 import { rateLimit } from '../lib/rateLimit.js';
 import { getProductsByIds, isSoldOut } from '../store/productStore.js';
-import { getSettings, shippingFor } from '../store/settingsStore.js';
+import { findZone, getSettings, shippingFor } from '../store/settingsStore.js';
 import {
   CouponRejectedError,
   ORDER_STATUSES,
@@ -18,7 +18,7 @@ import {
 const router = Router();
 
 router.post('/', async (req, res) => {
-  const { items, email, couponCode, shippingAddress, paymentMethod } = req.body ?? {};
+  const { items, email, couponCode, shippingAddress, paymentMethod, deliveryZoneId } = req.body ?? {};
   const settings = await getSettings();
 
   if (!settings.ordersOpen) {
@@ -37,6 +37,12 @@ router.post('/', async (req, res) => {
   const field = (v: unknown) => String(v ?? '').trim().slice(0, 200);
   if (!addr || !field(addr.firstName) || !field(addr.address) || !field(addr.city) || !field(addr.phone)) {
     return res.status(400).json({ error: 'Delivery name, address, city and phone are required.' });
+  }
+
+  // When the shop has delivery zones, the customer must pick one of them.
+  const zone = findZone(settings, deliveryZoneId ? String(deliveryZoneId) : null);
+  if (settings.deliveryZones.length > 0 && !zone) {
+    return res.status(400).json({ error: 'Please choose a delivery option.' });
   }
 
   // Price, name and availability always come from the trusted catalogue —
@@ -97,9 +103,10 @@ router.post('/', async (req, res) => {
         },
         // Firestore rejects `undefined` fields, so omit rather than set them.
         ...(paymentMethod ? { paymentMethod: String(paymentMethod).slice(0, 60) } : {}),
+        ...(zone ? { delivery: { id: zone.id, name: zone.name, eta: zone.eta } } : {}),
         items: validItems,
         subtotal,
-        shipping: shippingFor(subtotal, settings),
+        shipping: shippingFor(subtotal, settings, zone?.id),
       },
       couponCode ? String(couponCode) : null
     );

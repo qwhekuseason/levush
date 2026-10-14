@@ -28,6 +28,8 @@ export interface Order {
   email: string;
   uid: string | null;
   shippingAddress?: ShippingAddress;
+  /** delivery option chosen at checkout (when the shop has delivery zones) */
+  delivery?: { id: string; name: string; eta: string };
   paymentMethod?: string;
   items: OrderItem[];
   subtotal: number;
@@ -48,12 +50,13 @@ export interface TrackedOrder {
   id: string;
   status: OrderStatus;
   statusHistory: Array<{ status: OrderStatus; at: number }>;
-  items: Array<Pick<OrderItem, 'name' | 'color' | 'size' | 'quantity' | 'price'>>;
+  items: Array<Pick<OrderItem, 'productId' | 'name' | 'color' | 'size' | 'quantity' | 'price'>>;
   subtotal: number;
   discount: number;
   shipping: number;
   total: number;
   city: string;
+  delivery: string;
   customerNote: string;
   createdAt: number;
 }
@@ -158,22 +161,30 @@ const lastDigits = (phone: string) => String(phone ?? '').replace(/\D/g, '').sli
  * Look up an order for its customer. Requires the order number AND the phone
  * used at checkout (last 9 digits, so 024…, +233 24… and 23324… all match).
  */
-export async function trackOrder(id: string, phone: string): Promise<TrackedOrder | null> {
+/** The full order, but only if `phone` matches the one used at checkout. */
+export async function getOrderForCustomer(id: string, phone: string): Promise<Order | null> {
   const snap = await db.collection(COLLECTION).doc(id.trim().toUpperCase()).get();
   if (!snap.exists) return null;
   const o = snap.data() as Order;
   const given = lastDigits(phone);
   if (given.length < 9 || given !== lastDigits(o.shippingAddress?.phone ?? '')) return null;
+  return o;
+}
+
+export async function trackOrder(id: string, phone: string): Promise<TrackedOrder | null> {
+  const o = await getOrderForCustomer(id, phone);
+  if (!o) return null;
   return {
     id: o.id,
     status: o.status,
     statusHistory: o.statusHistory ?? [{ status: 'received', at: o.createdAt }],
-    items: o.items.map(({ name, color, size, quantity, price }) => ({ name, color, size, quantity, price })),
+    items: o.items.map(({ productId, name, color, size, quantity, price }) => ({ productId, name, color, size, quantity, price })),
     subtotal: o.subtotal,
     discount: o.discount,
     shipping: o.shipping,
     total: o.total,
     city: o.shippingAddress?.city ?? '',
+    delivery: o.delivery ? `${o.delivery.name}${o.delivery.eta ? ` (${o.delivery.eta})` : ''}` : '',
     customerNote: o.customerNote ?? '',
     createdAt: o.createdAt,
   };

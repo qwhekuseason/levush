@@ -14,6 +14,8 @@ export interface PlacedOrder {
   shipping: number;
   total: number;
   customer: { firstName: string; lastName: string; phone: string; email: string; address: string; city: string };
+  /** chosen delivery option, e.g. "Accra (1–2 days)" */
+  delivery?: string;
 }
 
 export const LAST_ORDER_KEY = 'levush.lastOrder.v1';
@@ -29,7 +31,7 @@ function orderMessage(o: PlacedOrder): string {
     '',
     `Subtotal: ${formatPrice(o.subtotal)}`,
     ...(o.discount > 0 ? [`Discount${o.couponCode ? ` (${o.couponCode})` : ''}: -${formatPrice(o.discount)}`] : []),
-    `Delivery: ${o.shipping === 0 ? 'Free' : formatPrice(o.shipping)}`,
+    `Delivery${o.delivery ? ` (${o.delivery})` : ''}: ${o.shipping === 0 ? 'Free' : formatPrice(o.shipping)}`,
     `*Total: ${formatPrice(o.total)}*`,
     '',
     `Name: ${o.customer.firstName} ${o.customer.lastName}`.trim(),

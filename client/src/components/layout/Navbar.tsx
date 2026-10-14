@@ -5,6 +5,7 @@ import { CartIcon, CloseIcon, MenuIcon, UserIcon } from '@/components/icons';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
+import { useWishlist } from '@/context/WishlistContext';
 import { classNames } from '@/lib/format';
 
 const baseLinks = [
@@ -17,6 +18,7 @@ const baseLinks = [
 export default function Navbar() {
   const { count, openCart } = useCart();
   const { isAdmin, user } = useAuth();
+  const { saved } = useWishlist();
   const { announcement } = useStoreSettings().settings;
   const showAnnouncement = announcement.enabled && announcement.text.trim().length > 0;
   const links = isAdmin ? [...baseLinks, { to: '/admin', label: 'Admin' }] : baseLinks;
@@ -77,6 +79,20 @@ export default function Navbar() {
         </ul>
 
         <div className="flex items-center gap-1">
+          <Link
+            to="/saved"
+            className="group relative rounded-full p-2.5 text-bone/70 transition-all duration-200 hover:bg-bone/8 hover:text-bone"
+            aria-label={saved.length ? `Saved pieces (${saved.length})` : 'Saved pieces'}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              <path strokeLinejoin="round" d="M12 20.5s-7.5-4.4-9.3-9.2C1.4 7.9 3.6 4.5 7 4.5c2 0 3.6 1.1 5 3 1.4-1.9 3-3 5-3 3.4 0 5.6 3.4 4.3 6.8-1.8 4.8-9.3 9.2-9.3 9.2z" />
+            </svg>
+            {saved.length > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 grid h-[18px] w-[18px] place-items-center rounded-full bg-bone text-[10px] font-bold text-ink shadow-sm">
+                {saved.length}
+              </span>
+            )}
+          </Link>
           <Link
             to={user ? "/account" : "/signin"}
             className="group relative rounded-full p-2.5 text-bone/70 transition-all duration-200 hover:bg-bone/8 hover:text-bone"

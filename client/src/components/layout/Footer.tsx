@@ -17,6 +17,7 @@ const cols = [
       { to: '/about', label: 'About' },
       { to: '/contact', label: 'Contact Us' },
       { to: '/track', label: 'Track Your Order' },
+      { to: '/saved', label: 'Saved Pieces' },
       { to: '/account', label: 'Account' },
     ],
   },
