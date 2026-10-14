@@ -2,6 +2,7 @@ import { Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import RequireAdmin from '@/components/RequireAdmin';
+import { LogoSvg } from '@/components/Logo';
 
 // Eager load Home for instant first render
 import Home from '@/pages/Home';
@@ -43,7 +44,8 @@ function PageLoader() {
   return (
     <div className="container-site flex min-h-[60vh] items-center justify-center text-bone/40">
       <div className="flex flex-col items-center gap-3">
-        <div className="h-7 w-7 animate-spin rounded-full border-2 border-gold border-t-transparent" />
+        {/* the monogram's cloth flutters while the page loads */}
+        <LogoSvg variant="mark" motion="loop" className="h-12 w-auto text-bone" title="Loading" />
         <span className="text-xs uppercase tracking-widest text-bone/50">Loading…</span>
       </div>
     </div>

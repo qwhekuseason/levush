@@ -106,11 +106,63 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     animation: grain-shift 0.9s steps(4) infinite;
   }
+  /* Logo cloth: pivots where it leaves the E (origin set inline, in SVG user units). */
+  .logo-cloth {
+    transform-box: view-box;
+  }
+  .logo-cloth.is-fluttering {
+    animation: cloth-flutter 1.8s cubic-bezier(.36, .07, .19, .97) both;
+  }
+  .logo-cloth.is-looping {
+    animation: cloth-flutter 2.4s ease-in-out infinite;
+  }
+  @keyframes cloth-flutter {
+    0% { transform: none; }
+    18% { transform: rotate(-5deg) skewX(6deg) scale(1.04, .97); }
+    38% { transform: rotate(3deg) skewX(-4deg) scale(.98, 1.02); }
+    58% { transform: rotate(-2deg) skewX(2deg) scale(1.02, .99); }
+    78% { transform: rotate(1deg) skewX(-1deg); }
+    100% { transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .logo-cloth.is-fluttering,
+    .logo-cloth.is-looping { animation: none; }
+  }
+
   /* Opening title: the word rises in; the tagline fades up after it. */
   @keyframes intro-rise {
     from { opacity: 0; transform: translateY(6%) scale(.96); letter-spacing: .08em; }
     to { opacity: 1; transform: none; letter-spacing: -0.02em; }
   }
+  /* Intro finale: outline draws in, then fills; the cloth unfurls from the E, then flutters once. */
+  .intro-logo { transform-box: view-box; }
+  .intro-logo-still {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    fill-opacity: 0;
+    animation: intro-draw 0.95s cubic-bezier(.6, .05, .3, 1) forwards, intro-fill 0.45s ease 0.75s forwards;
+  }
+  .intro-logo-cloth {
+    transform-box: view-box;
+    transform: scaleX(0);
+    animation: intro-unfurl 0.7s cubic-bezier(.2, .9, .25, 1.15) 0.95s forwards, cloth-flutter 1.6s ease-in-out 1.6s forwards;
+  }
+  .intro-logo-word {
+    opacity: 0;
+    animation: intro-word-rise 0.6s ease 1.25s forwards;
+  }
+  @keyframes intro-draw { to { stroke-dashoffset: 0; } }
+  @keyframes intro-fill { to { fill-opacity: 1; stroke-width: 0; } }
+  @keyframes intro-unfurl {
+    0% { transform: scaleX(0) skewY(-12deg); opacity: 0; }
+    60% { opacity: 1; }
+    100% { transform: none; opacity: 1; }
+  }
+  @keyframes intro-word-rise {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: none; }
+  }
+
   @keyframes intro-sheen {
     from { background-position: 160% 0, 50% 38%; }
     to { background-position: -60% 0, 50% 56%; }
