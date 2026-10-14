@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { collections } from '@/data/products';
 import { useCatalog } from '@/context/CatalogContext';
@@ -48,6 +48,26 @@ export default function Shop() {
 
   const [showColorPanel, setShowColorPanel] = useState(false);
   const [showSizePanel, setShowSizePanel] = useState(false);
+  const filtersRef = useRef<HTMLDivElement>(null);
+
+  // Close the colour/size panels when tapping outside them or pressing Escape.
+  useEffect(() => {
+    if (!showColorPanel && !showSizePanel) return;
+    const close = () => {
+      setShowColorPanel(false);
+      setShowSizePanel(false);
+    };
+    const onDown = (e: PointerEvent) => {
+      if (!filtersRef.current?.contains(e.target as Node)) close();
+    };
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
+    document.addEventListener('pointerdown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [showColorPanel, showSizePanel]);
 
   const setCollection = (c: string) => {
     if (c === 'All') params.delete('collection');
@@ -214,7 +234,7 @@ export default function Shop() {
         </div>
 
         {/* Colour & Size Checkbox Panels */}
-        <div className="flex flex-wrap items-start gap-4">
+        <div ref={filtersRef} className="flex flex-wrap items-start gap-4">
 
           {/* ── Colour Checkbox Group ── */}
           <div className="relative">
@@ -239,7 +259,7 @@ export default function Shop() {
             </button>
 
             {showColorPanel && (
-              <div className="absolute left-0 top-full z-30 mt-2 min-w-[200px] rounded-xl border border-bone/15 bg-[#161616] p-4 shadow-2xl">
+              <div className="absolute left-0 top-full z-30 mt-2 min-w-[200px] rounded-xl border border-bone/15 bg-ink p-4 shadow-2xl shadow-black/15">
                 <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-bone/40">Colour</p>
                 <div className="flex flex-col gap-2.5">
                   {COLOUR_PALETTE.map((col) => {
@@ -321,7 +341,7 @@ export default function Shop() {
             </button>
 
             {showSizePanel && (
-              <div className="absolute left-0 top-full z-30 mt-2 min-w-[160px] rounded-xl border border-bone/15 bg-[#161616] p-4 shadow-2xl">
+              <div className="absolute right-0 top-full z-30 mt-2 min-w-[160px] rounded-xl border border-bone/15 bg-ink p-4 shadow-2xl shadow-black/15 sm:left-0 sm:right-auto">
                 <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-bone/40">Size</p>
                 <div className="flex flex-col gap-2.5">
                   {availableSizes.map((s) => {
