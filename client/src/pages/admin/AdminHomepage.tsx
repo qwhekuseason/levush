@@ -8,8 +8,8 @@ import type { HomeSectionKey, HomepageSettings } from '@/types';
 
 const SECTION_INFO: Record<HomeSectionKey, { name: string; desc: string }> = {
   marquee: { name: 'Verse strip', desc: 'Scripture quotes under the hero' },
-  light: { name: 'Light of the World', desc: 'Dark scene where a moving light reveals a photo and verse' },
   featured: { name: 'New & Noted', desc: 'Your picked products' },
+  story: { name: 'From Verse to Garment', desc: 'Scroll story: verse → shirt → fabric → on a model' },
   lookbook: { name: 'Studio Lookbook', desc: 'Model photo grid' },
   collections: { name: 'Collections', desc: 'Statement and Remix cards' },
   promise: { name: 'Promise band', desc: 'Premium cotton · Made with intention · Wear the Word' },
@@ -39,17 +39,8 @@ export default function AdminHomepage() {
   };
   const setHero = (k: keyof HomepageSettings['hero'], v: string) => edit({ hero: { ...form.hero, [k]: v } });
   const setIntro = (patch: Partial<HomepageSettings['intro']>) => edit({ intro: { ...form.intro, ...patch } });
-  const setLight = (patch: Partial<HomepageSettings['light']>) => edit({ light: { ...form.light, ...patch } });
-
-  // Photos the light can reveal: the studio shot plus the chosen product's images.
-  const lightProduct = products.find((p) => p.id === form.light.productId);
-  const lightImages: Array<{ ref: string; src: string; label: string }> = [
-    { ref: 'studio', src: '/assets/models/IMG_2763-640.webp', label: 'Studio shot' },
-    ...(lightProduct?.modelImage ? [{ ref: 'model', src: lightProduct.modelImage, label: 'On model' }] : []),
-    ...(lightProduct?.colorways ?? []).map((c) => ({ ref: `color:${c.name}`, src: c.image, label: c.label })),
-    ...(lightProduct?.gallery ?? []).map((g, i) => ({ ref: `gallery:${i}`, src: g, label: `Look ${i + 1}` })),
-  ];
-
+  const storyProduct = products.find((p) => p.id === form.story.productId);
+  const setStory = (patch: Partial<HomepageSettings['story']>) => edit({ story: { ...form.story, ...patch } });
   const moveSection = (i: number, dir: -1 | 1) => {
     const next = [...form.sections];
     [next[i], next[i + dir]] = [next[i + dir], next[i]];
@@ -158,48 +149,77 @@ export default function AdminHomepage() {
         </a>
       </section>
 
-      {/* Light of the World */}
+      {/* From Verse to Garment */}
       <section className="card-surface p-6">
-        <h3 className="heading-serif mb-1 text-lg text-bone">Light of the World</h3>
+        <h3 className="heading-serif mb-1 text-lg text-bone">From Verse to Garment</h3>
         <p className="mb-5 text-xs text-bone/45">
-          A dark section where the visitor’s cursor or finger is a light revealing the photo and verse. Move it in the list below; untick it to hide.
+          A scroll story in four chapters: the verse writes itself, lands on the shirt, the camera moves in on the print, then the piece is revealed on a model with a Shop button. Uses the product’s main photo and its model photo.
         </p>
         <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
-          <div>
-            <label htmlFor="hp-light-verse" className="mb-1.5 block text-xs font-medium text-bone/70">Verse (shown large)</label>
-            <input id="hp-light-verse" className="field" maxLength={120} value={form.light.verse} onChange={(e) => setLight({ verse: e.target.value })} />
-          </div>
-          <div>
-            <label htmlFor="hp-light-ref" className="mb-1.5 block text-xs font-medium text-bone/70">Reference</label>
-            <input id="hp-light-ref" className="field" maxLength={40} value={form.light.reference} onChange={(e) => setLight({ reference: e.target.value })} />
-          </div>
           <div className="sm:col-span-2">
-            <label htmlFor="hp-light-product" className="mb-1.5 block text-xs font-medium text-bone/70">Product the “Shop” button links to</label>
-            <select id="hp-light-product" className="field" value={form.light.productId} onChange={(e) => setLight({ productId: e.target.value, imageRef: 'studio' })}>
-              <option value="">No button</option>
+            <label htmlFor="hp-story-product" className="mb-1.5 block text-xs font-medium text-bone/70">Product</label>
+            <select
+              id="hp-story-product"
+              className="field"
+              value={form.story.productId}
+              onChange={(e) => {
+                const p = products.find((x) => x.id === e.target.value);
+                setStory({ productId: e.target.value, color: '', verse: p?.verse.text.split(/(?<=[.!?])\s/)[0] ?? '', reference: p?.verse.reference ?? '' });
+              }}
+            >
+              <option value="">Choose a product…</option>
               {products.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
+                <option key={p.id} value={p.id}>{p.name}{p.modelImage ? '' : ' (no model photo yet)'}</option>
               ))}
             </select>
           </div>
+          <div>
+            <label htmlFor="hp-story-verse" className="mb-1.5 block text-xs font-medium text-bone/70">Verse (one short sentence works best)</label>
+            <input id="hp-story-verse" className="field" maxLength={90} value={form.story.verse} onChange={(e) => setStory({ verse: e.target.value })} />
+          </div>
+          <div>
+            <label htmlFor="hp-story-ref" className="mb-1.5 block text-xs font-medium text-bone/70">Reference</label>
+            <input id="hp-story-ref" className="field" maxLength={40} value={form.story.reference} onChange={(e) => setStory({ reference: e.target.value })} />
+          </div>
         </div>
-        <p className="mb-2 mt-5 text-xs font-medium text-bone/70">Photo revealed by the light</p>
-        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Photo revealed by the light">
-          {lightImages.map((img) => (
-            <button
-              key={img.ref}
-              type="button"
-              role="radio"
-              aria-checked={form.light.imageRef === img.ref}
-              onClick={() => setLight({ imageRef: img.ref })}
-              className={classNames(
-                'w-20 overflow-hidden rounded-lg border-2 text-left transition',
-                form.light.imageRef === img.ref ? 'border-gold' : 'border-transparent hover:border-bone/30'
-              )}
-            >
-              <img src={img.src} alt="" className="h-24 w-full object-cover object-top" />
-              <span className="block truncate px-1 py-0.5 text-[10px] text-bone/60">{img.label}</span>
-            </button>
+        {storyProduct && storyProduct.colorways.length > 1 && (
+          <>
+            <p className="mb-2 mt-5 text-xs font-medium text-bone/70">Shirt photo (pick the colour the model wears)</p>
+            <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Shirt colour">
+              {storyProduct.colorways.map((c) => {
+                const on = (form.story.color || storyProduct.defaultColor) === c.name;
+                return (
+                  <button
+                    key={c.name}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    onClick={() => setStory({ color: c.name })}
+                    className={classNames('w-20 overflow-hidden rounded-lg border-2 text-left transition', on ? 'border-gold' : 'border-transparent hover:border-bone/30')}
+                  >
+                    <img src={c.image} alt="" className="h-24 w-full object-cover" />
+                    <span className="block truncate px-1 py-0.5 text-[10px] text-bone/60">{c.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+        <p className="mb-2 mt-5 text-xs font-medium text-bone/70">Fabric notes (chapter 3, up to 3)</p>
+        <div className="space-y-2">
+          {[0, 1, 2].map((i) => (
+            <input
+              key={i}
+              className="field"
+              maxLength={60}
+              aria-label={`Fabric note ${i + 1}`}
+              placeholder={i === 0 ? 'e.g. Heavyweight cotton that holds its shape' : 'Optional'}
+              value={form.story.notes[i] ?? ''}
+              onChange={(e) => {
+                const notes = [0, 1, 2].map((j) => (j === i ? e.target.value : form.story.notes[j] ?? ''));
+                setStory({ notes });
+              }}
+            />
           ))}
         </div>
       </section>

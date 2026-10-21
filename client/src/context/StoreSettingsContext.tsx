@@ -27,14 +27,15 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
       text: 'LEVUSH',
       reference: 'Faith, worn.',
     },
-    light: {
+    story: {
       productId: 'light-of-the-world',
-      imageRef: 'studio',
+      color: 'brown',
       verse: 'You are the light of the world.',
       reference: 'Matthew 5:14',
+      notes: ['Heavyweight cotton that holds its shape', 'Soft-hand print that won’t crack', 'Cut and finished for everyday wear'],
     },
     featuredIds: [],
-    sections: (['marquee', 'light', 'featured', 'lookbook', 'collections', 'promise', 'testimonials', 'cta'] as const).map((key) => ({ key, visible: true })),
+    sections: (['marquee', 'featured', 'story', 'lookbook', 'collections', 'promise', 'testimonials', 'cta'] as const).map((key) => ({ key, visible: true })),
   },
 };
 
@@ -66,7 +67,7 @@ function withDefaults(s: Partial<StoreSettings> | null | undefined): StoreSettin
     homepage: {
       hero: { ...d.homepage.hero, ...(hp.hero ?? {}) },
       intro: { ...d.homepage.intro, ...(hp.intro ?? {}) },
-      light: { ...d.homepage.light, ...(hp.light ?? {}) },
+      story: { ...d.homepage.story, ...(hp.story ?? {}), notes: Array.isArray(hp.story?.notes) ? hp.story!.notes : d.homepage.story.notes },
       featuredIds: Array.isArray(hp.featuredIds) ? hp.featuredIds : [],
       sections: Array.isArray(hp.sections) && hp.sections.length ? hp.sections : d.homepage.sections,
     },

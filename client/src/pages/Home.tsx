@@ -2,19 +2,19 @@ import { Link } from 'react-router-dom';
 import { testimonials, verseChips } from '@/data/products';
 import { useCatalog } from '@/context/CatalogContext';
 import { useStoreSettings } from '@/context/StoreSettingsContext';
-import { formatPrice } from '@/lib/format';
+import { formatPrice, productImage } from '@/lib/format';
 import ProductCard from '@/components/ProductCard';
 import Reveal from '@/components/Reveal';
 import ShowcaseVideo from '@/components/ShowcaseVideo';
 import CinematicIntro from '@/components/CinematicIntro';
-import LightReveal from '@/components/LightReveal';
+import VerseToGarment from '@/components/VerseToGarment';
 import { ArrowRight, StarIcon } from '@/components/icons';
 import type { HomeSectionKey } from '@/types';
 
 export default function Home() {
   const { products } = useCatalog();
   const { settings } = useStoreSettings();
-  const { hero: heroText, featuredIds, sections, intro, light } = settings.homepage;
+  const { hero: heroText, featuredIds, sections, intro, story } = settings.homepage;
 
   // Opening-title photos: the studio model shots attached to products (light 640px copies).
   const introImages = (() => {
@@ -26,22 +26,12 @@ export default function Home() {
     return list.map((src) => src.replace(/\.webp$/, '-640.webp'));
   })();
 
-  // "Light of the World" photo: the studio shot, or one of the chosen product's images.
+  // Studio shot, used when a product has no model photo yet.
   const STUDIO = '/assets/models/IMG_2763.webp';
-  const lightProduct = products.find((p) => p.id === light.productId);
-  const lightImage = (() => {
-    const ref = light.imageRef;
-    if (ref === 'model' && lightProduct?.modelImage) return lightProduct.modelImage;
-    if (ref.startsWith('color:')) {
-      const c = lightProduct?.colorways.find((x) => x.name === ref.slice(6));
-      if (c?.image) return c.image;
-    }
-    if (ref.startsWith('gallery:')) {
-      const g = lightProduct?.gallery?.[Number(ref.slice(8))];
-      if (g) return g;
-    }
-    return STUDIO;
-  })();
+
+  // "From Verse to Garment": the flat shirt, then the same piece on a model.
+  const storyProduct = products.find((p) => p.id === story.productId);
+  const storyModel = storyProduct?.modelImage || STUDIO;
 
   // "New & Noted": the admin's picks (in their order), else the first four pieces.
   const picked = featuredIds.map((id) => products.find((p) => p.id === id)).filter((p) => p !== undefined);
@@ -129,15 +119,19 @@ export default function Home() {
 
   // Every homepage section, keyed so the admin can reorder or hide them.
   const SECTIONS: Record<HomeSectionKey, JSX.Element> = {
-    light: (
-      <LightReveal
-        image={lightImage}
-        imageSmall={lightImage === STUDIO ? '/assets/models/IMG_2763-640.webp' : undefined}
-        verse={light.verse}
-        reference={light.reference}
-        productName={lightProduct?.name}
-        href={lightProduct ? `/shop/${lightProduct.slug}` : undefined}
+    story: storyProduct ? (
+      <VerseToGarment
+        verse={story.verse || storyProduct.verse.text}
+        reference={story.reference || storyProduct.verse.reference}
+        productName={storyProduct.name}
+        href={`/shop/${storyProduct.slug}`}
+        shirtImage={productImage(storyProduct, storyProduct.colorways.some((c) => c.name === story.color) ? story.color : storyProduct.defaultColor)}
+        modelImage={storyModel}
+        fabricImage={storyModel}
+        fabricNotes={story.notes.filter(Boolean)}
       />
+    ) : (
+      <></>
     ),
     marquee: (
       <>

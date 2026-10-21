@@ -163,6 +163,9 @@
     to { opacity: 1; transform: none; }
   }
 
+  /* Scroll stories (VerseToGarment) take the whole screen while pinned. */
+  html[data-immersive] .site-header { transform: translateY(-100%); opacity: 0; pointer-events: none; }
+
   @keyframes intro-sheen {
     from { background-position: 160% 0, 50% 38%; }
     to { background-position: -60% 0, 50% 56%; }

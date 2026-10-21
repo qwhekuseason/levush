@@ -206,13 +206,13 @@ export interface DeliveryZone {
   eta: string;
 }
 
-export type HomeSectionKey = 'marquee' | 'light' | 'featured' | 'lookbook' | 'collections' | 'promise' | 'testimonials' | 'cta';
+export type HomeSectionKey = 'marquee' | 'featured' | 'story' | 'lookbook' | 'collections' | 'promise' | 'testimonials' | 'cta';
 
 export interface HomepageSettings {
   hero: { eyebrow: string; title: string; accent: string; subtitle: string };
   intro: { enabled: boolean; text: string; reference: string };
-  /** imageRef: 'studio' | 'model' | 'color:<name>' | 'gallery:<i>' */
-  light: { productId: string; imageRef: string; verse: string; reference: string };
+  /** "From Verse to Garment" scroll story */
+  story: { productId: string; color: string; verse: string; reference: string; notes: string[] };
   featuredIds: string[];
   sections: Array<{ key: HomeSectionKey; visible: boolean }>;
 }

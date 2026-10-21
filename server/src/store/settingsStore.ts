@@ -19,18 +19,15 @@ export interface DeliveryZone {
 }
 
 /** Homepage sections, in the order the admin arranges them. */
-export const HOME_SECTIONS = ['marquee', 'light', 'featured', 'lookbook', 'collections', 'promise', 'testimonials', 'cta'] as const;
+export const HOME_SECTIONS = ['marquee', 'featured', 'story', 'lookbook', 'collections', 'promise', 'testimonials', 'cta'] as const;
 export type HomeSectionKey = (typeof HOME_SECTIONS)[number];
-
-/** Which photo the "Light of the World" reveal shows. */
-export type LightImageRef = 'studio' | 'model' | `color:${string}` | `gallery:${number}`;
 
 export interface HomepageSettings {
   hero: { eyebrow: string; title: string; accent: string; subtitle: string };
   /** cinematic opening title: a verse writes itself, then the letterbox opens */
   intro: { enabled: boolean; text: string; reference: string };
-  /** "Light of the World" section: a spotlight reveals a photo and verse */
-  light: { productId: string; imageRef: LightImageRef; verse: string; reference: string };
+  /** "From Verse to Garment": scroll-driven story of one product */
+  story: { productId: string; /** colourway shown as the flat shirt; '' = the product's default */ color: string; verse: string; reference: string; notes: string[] };
   /** product ids for "New & Noted"; empty = newest 4 */
   featuredIds: string[];
   sections: Array<{ key: HomeSectionKey; visible: boolean }>;
@@ -76,11 +73,12 @@ export const DEFAULT_HOMEPAGE: HomepageSettings = {
     text: 'LEVUSH',
     reference: 'Faith, worn.',
   },
-  light: {
+  story: {
     productId: 'light-of-the-world',
-    imageRef: 'studio',
+    color: 'brown',
     verse: 'You are the light of the world.',
     reference: 'Matthew 5:14',
+    notes: ['Heavyweight cotton that holds its shape', 'Soft-hand print that won’t crack', 'Cut and finished for everyday wear'],
   },
   featuredIds: [],
   sections: HOME_SECTIONS.map((key) => ({ key, visible: true })),
@@ -120,9 +118,8 @@ function normalizeHomepage(raw: Partial<HomepageSettings> | undefined): Homepage
   });
   const featuredIds = Array.isArray(raw?.featuredIds) ? [...new Set(raw!.featuredIds.map(String))].slice(0, 8) : [];
   const intro = { ...DEFAULT_HOMEPAGE.intro, ...(raw?.intro ?? {}) };
-  const light = { ...DEFAULT_HOMEPAGE.light, ...(raw?.light ?? {}) };
-  const ref = String(light.imageRef ?? '');
-  const imageRef = (/^(studio|model|color:[\w-]{1,40}|gallery:\d{1,2})$/.test(ref) ? ref : 'studio') as LightImageRef;
+  const story = { ...DEFAULT_HOMEPAGE.story, ...(raw?.story ?? {}) };
+  const notes = (Array.isArray(story.notes) ? story.notes : []).map((n) => String(n ?? '').trim().slice(0, 60)).filter(Boolean).slice(0, 3);
   return {
     hero,
     intro: {
@@ -130,11 +127,12 @@ function normalizeHomepage(raw: Partial<HomepageSettings> | undefined): Homepage
       text: String(intro.text ?? '').slice(0, 160),
       reference: String(intro.reference ?? '').slice(0, 40),
     },
-    light: {
-      productId: String(light.productId ?? '').slice(0, 80),
-      imageRef,
-      verse: String(light.verse ?? '').slice(0, 120),
-      reference: String(light.reference ?? '').slice(0, 40),
+    story: {
+      productId: String(story.productId ?? '').slice(0, 80),
+      color: String(story.color ?? '').slice(0, 40),
+      verse: String(story.verse ?? '').slice(0, 90),
+      reference: String(story.reference ?? '').slice(0, 40),
+      notes,
     },
     featuredIds,
     sections,
@@ -234,7 +232,7 @@ export async function updateSettings(input: Partial<StoreSettings>): Promise<Sto
       subtitle: hpIn.hero.subtitle.slice(0, 200),
     },
     intro: hpIn.intro,
-    light: hpIn.light,
+    story: hpIn.story,
     featuredIds: hpIn.featuredIds,
     sections: hpIn.sections,
   };
